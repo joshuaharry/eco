@@ -37,6 +37,14 @@ func TestOptionChaining(t *testing.T) {
 	}
 }
 
+func TestNoOption(t *testing.T) {
+	x := MakeParser("check", "This is a test")
+	opt := x.GetOption("-c")
+	if opt != nil {
+		t.Error("Expected nil opt")
+	}
+}
+
 func TestArgumentCreation(t *testing.T) {
 	x := MakeParser("eco", "This is a test")
 	y := MakeParser("test", "This is another test.")
@@ -44,6 +52,14 @@ func TestArgumentCreation(t *testing.T) {
 	cmd := x.GetCommand("test")
 	if cmd != y {
 		t.Error("Expected to get the commmand we just added")
+	}
+}
+
+func TestNoArgument(t *testing.T) {
+	x := MakeParser("eco", "This is a test")
+	cmd := x.GetCommand("test")
+	if cmd != nil {
+		t.Error("Expected nil command")
 	}
 }
 
@@ -80,18 +96,6 @@ func TestAddingMultipleCommands(t *testing.T) {
 	}
 	if eco.GetCommand("test") != test {
 		t.Error("Expected to get test.")
-	}
-}
-
-func TestValuesBeforeParsing(t *testing.T) {
-	eco := MakeParser("eco", "A command.").AddOption(Option{
-		Description: "Decide whether or not to use colors.",
-		Aliases:     []string{"-c", "--color"},
-		Arguments:   []string{"on"},
-	})
-	colors := eco.GetOption("-c")
-	if colors.Seen {
-		t.Error("Expected colors not to be seen")
 	}
 }
 
@@ -138,3 +142,92 @@ func TestHelpCommand(t *testing.T) {
 		}
 	}
 }
+
+func TestValuesBeforeParsing(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	colors := eco.GetOption("-c")
+	if colors.Seen {
+		t.Error("Expected colors not to be seen")
+	}
+}
+
+func TestSimpleParsing(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	err := eco.Parse([]string{"eco", "-c", "off"})
+	if err != nil {
+		t.Error(err)
+	}
+	color := eco.GetOption("-c")
+	if !color.Seen {
+		t.Error("Expected color to be seen")
+	}
+	if color.Value[0] != "off" {
+		t.Error("Expected value to be off")
+	}
+}
+
+func TestOutOfBounds(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--config"},
+		Arguments:   []string{"path", "extra", "check"},
+	})
+	err := eco.Parse([]string{"eco", "-c"})
+	msg := err.Error()
+	if msg != "option -c needs 3 arguments, got 0" {
+		t.Errorf("Bad error message: %s\n", msg)
+	}
+}
+
+func TestOutOfBoundsMoreComplex(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--config"},
+		Arguments:   []string{"path", "extra", "check", "thirty", "two"},
+	})
+	err := eco.Parse([]string{"eco", "-c", "a", "b"})
+	msg := err.Error()
+	if msg != "option -c needs 5 arguments, got 2" {
+		t.Errorf("Bad error message: %s\n", msg)
+	}
+}
+
+func TestLongParsing(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	eco.Parse([]string{"eco", "--color", "hello"})
+	color := eco.GetOption("-c")
+	if !color.Seen {
+		t.Error("Expected color to be seen")
+	}
+	if color.Value[0] != "hello" {
+		t.Error("Expected value to be hello")
+	}
+}
+
+// func TestEqualsParsing(t *testing.T) {
+// 	eco := MakeParser("eco", "A command.").AddOption(Option{
+// 		Description: "Decide whether or not to use colors.",
+// 		Aliases:     []string{"-c", "--color"},
+// 		Arguments:   []string{"on"},
+// 	})
+// 	eco.Parse([]string{"eco", "-c=off"})
+// 	color := eco.GetOption("-c")
+// 	if !color.Seen {
+// 		t.Error("Expected color to be seen")
+// 	}
+// 	if color.Value[0] != "off" {
+// 		t.Error("Expected value to be off")
+// 	}
+// }

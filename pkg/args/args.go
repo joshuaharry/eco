@@ -1,17 +1,9 @@
 package args
 
 import (
+	"fmt"
 	"strings"
 )
-
-// An ArgError represents a parsing error.
-type ArgError struct {
-}
-
-// Error returns a string describing what went wrong with the argument parsing.
-func (err ArgError) Error() string {
-	return ""
-}
 
 // An Option represents a CLI option.
 type Option struct {
@@ -25,7 +17,7 @@ type Option struct {
 	// Seen represents whether we have have seen this option in the CLI
 	// or not.
 	Seen bool
-	// Value represents the default value (or values) of this option.
+	// Values represents the values associated with this option.
 	Value []string
 }
 
@@ -75,7 +67,11 @@ func (arg *ArgumentParser) AddOption(opt Option) *ArgumentParser {
 
 // GetOption retrieves an Option from an argument parser.
 func (arg *ArgumentParser) GetOption(alias string) *Option {
-	return arg.Options[arg.aliasMap[alias]]
+	el, ok := arg.aliasMap[alias]
+	if !ok {
+		return nil
+	}
+	return arg.Options[el]
 }
 
 // AddCommand adds a subcommand to the argument parser.
@@ -93,7 +89,38 @@ func (arg *ArgumentParser) AddCommand(cmd *ArgumentParser) *ArgumentParser {
 
 // GetCommand retrieves a command from the argument parser.
 func (arg *ArgumentParser) GetCommand(name string) *ArgumentParser {
-	return arg.Commands[arg.commandMap[name]]
+	el, ok := arg.commandMap[name]
+	if !ok {
+		return nil
+	}
+	return arg.Commands[el]
+}
+
+// Parse recursively updates the Parser with information passed from a slice of
+// strings; the slice will be os.Args in most cases, but we give the choice to the
+// caller to facilitate simpler testing.
+func (arg *ArgumentParser) Parse(args []string) error {
+	if args[0] != arg.Name {
+		return fmt.Errorf("expected to parse %s command; got %s", args[0], arg.Name)
+	}
+	argLen := len(args)
+	for i := 0; i < argLen; {
+		cur := args[i]
+		opt := arg.GetOption(cur)
+		if opt != nil {
+			opt.Seen = true
+			optArgLen := len(opt.Arguments)
+			if i+optArgLen > argLen {
+				return fmt.Errorf("option %s needs %d arguments, got %d", cur, optArgLen, argLen-i-1)
+			}
+			for j := 0; j < len(opt.Arguments); j++ {
+				i++
+				opt.Value = append(opt.Value, args[i])
+			}
+		}
+		i++
+	}
+	return nil
 }
 
 const (
