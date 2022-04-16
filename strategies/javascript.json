@@ -1,0 +1,33 @@
+{
+  "config": {
+    "name": "JavaScript",
+    "author": "Joshua Hoeflich",
+    "license": "MIT",
+    "timeout": 5000,
+    "dependencies": {
+      "required": [
+        { "program": "node", "command": "--version", "includes": "16" },
+        { "program": "git" }
+      ]
+    }
+  },
+  "action": {
+    "steps": [
+      {
+        "name": "Download the Source Code",
+        "uses": "@packagebuddy/find",
+        "timeout": 30
+      },
+      {
+        "name": "Run the Unit Tests",
+        "run": "npm test"
+      }
+    ],
+    "cleanup": [
+      {
+        "name": "Delete the source code",
+        "run": "rm -rf ."
+      }
+    ]
+  }
+}

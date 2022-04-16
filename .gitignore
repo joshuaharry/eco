@@ -1,0 +1,6 @@
+# Ignore all binaries in /bin while keeping the folder around via .gitkeep
+/bin/*
+!/bin/.gitkeep
+
+# Ignore direnv artifacts; we just want the .envrc file.
+.direnv
