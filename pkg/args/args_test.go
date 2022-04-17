@@ -14,7 +14,7 @@ func TestOptionCreation(t *testing.T) {
 		Aliases:     []string{"-t", "--test"},
 	}
 	x.AddOption(oldOpt)
-	opt := x.GetOption("-t")
+	opt := x.OptionNamed("-t")
 	if opt.Description != desc {
 		t.Error("Expected getting option to return the correct value")
 	}
@@ -29,17 +29,17 @@ func TestOptionChaining(t *testing.T) {
 		Description: "test",
 		Aliases:     []string{"-t", "--test"},
 	})
-	if x.GetOption("-c").Description != "config" {
+	if x.OptionNamed("-c").Description != "config" {
 		t.Error("Expected to get config")
 	}
-	if x.GetOption("-t").Description != "test" {
+	if x.OptionNamed("-t").Description != "test" {
 		t.Error("Expected to get test")
 	}
 }
 
 func TestNoOption(t *testing.T) {
 	x := MakeParser("check", "This is a test")
-	opt := x.GetOption("-c")
+	opt := x.OptionNamed("-c")
 	if opt != nil {
 		t.Error("Expected nil opt")
 	}
@@ -49,7 +49,7 @@ func TestArgumentCreation(t *testing.T) {
 	x := MakeParser("eco", "This is a test")
 	y := MakeParser("test", "This is another test.")
 	x.AddCommand(y)
-	cmd := x.GetCommand("test")
+	cmd := x.CommandNamed("test")
 	if cmd != y {
 		t.Error("Expected to get the commmand we just added")
 	}
@@ -57,7 +57,7 @@ func TestArgumentCreation(t *testing.T) {
 
 func TestNoArgument(t *testing.T) {
 	x := MakeParser("eco", "This is a test")
-	cmd := x.GetCommand("test")
+	cmd := x.CommandNamed("test")
 	if cmd != nil {
 		t.Error("Expected nil command")
 	}
@@ -67,7 +67,7 @@ func TestParentCreation(t *testing.T) {
 	x := MakeParser("eco", "This is a test")
 	y := MakeParser("test", "This is another test.")
 	x.AddCommand(y)
-	cmd := x.GetCommand("test")
+	cmd := x.CommandNamed("test")
 	parent := cmd.Parents[0]
 	if parent != "eco" {
 		t.Errorf("Expected parent to be eco, got %s\n", parent)
@@ -91,10 +91,10 @@ func TestAddingMultipleCommands(t *testing.T) {
 	check := MakeParser("check", "Next command.")
 	test := MakeParser("test", "Another command.")
 	eco.AddCommand(check).AddCommand(test)
-	if eco.GetCommand("check") != check {
+	if eco.CommandNamed("check") != check {
 		t.Error("Expected to get check.")
 	}
-	if eco.GetCommand("test") != test {
+	if eco.CommandNamed("test") != test {
 		t.Error("Expected to get test.")
 	}
 }
@@ -149,7 +149,7 @@ func TestValuesBeforeParsing(t *testing.T) {
 		Aliases:     []string{"-c", "--color"},
 		Arguments:   []string{"on"},
 	})
-	colors := eco.GetOption("-c")
+	colors := eco.OptionNamed("-c")
 	if colors.Seen {
 		t.Error("Expected colors not to be seen")
 	}
@@ -161,15 +161,15 @@ func TestSimpleParsing(t *testing.T) {
 		Aliases:     []string{"-c", "--color"},
 		Arguments:   []string{"on"},
 	})
-	err := eco.Parse([]string{"eco", "-c", "off"})
+	_, err := eco.Parse([]string{"eco", "-c", "off"})
 	if err != nil {
 		t.Error(err)
 	}
-	color := eco.GetOption("-c")
+	color := eco.OptionNamed("-c")
 	if !color.Seen {
 		t.Error("Expected color to be seen")
 	}
-	if color.Value[0] != "off" {
+	if color.Values[0] != "off" {
 		t.Error("Expected value to be off")
 	}
 }
@@ -180,7 +180,7 @@ func TestOutOfBounds(t *testing.T) {
 		Aliases:     []string{"-c", "--config"},
 		Arguments:   []string{"path", "extra", "check"},
 	})
-	err := eco.Parse([]string{"eco", "-c"})
+	_, err := eco.Parse([]string{"eco", "-c"})
 	msg := err.Error()
 	if msg != "option -c needs 3 arguments, got 0" {
 		t.Errorf("Bad error message: %s\n", msg)
@@ -193,10 +193,25 @@ func TestOutOfBoundsMoreComplex(t *testing.T) {
 		Aliases:     []string{"-c", "--config"},
 		Arguments:   []string{"path", "extra", "check", "thirty", "two"},
 	})
-	err := eco.Parse([]string{"eco", "-c", "a", "b"})
+	_, err := eco.Parse([]string{"eco", "-c", "a", "b"})
 	msg := err.Error()
 	if msg != "option -c needs 5 arguments, got 2" {
 		t.Errorf("Bad error message: %s\n", msg)
+	}
+}
+
+func TestJustRight(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--config"},
+		Arguments:   []string{"path", "extra", "check"},
+	})
+	res, err := eco.Parse([]string{"eco", "-c", "a", "b", "c"})
+	if err != nil {
+		t.Error(err)
+	}
+	if len(res.OptionNamed("-c").Arguments) != 3 {
+		t.Error("Expected three arguments")
 	}
 }
 
@@ -207,12 +222,43 @@ func TestLongParsing(t *testing.T) {
 		Arguments:   []string{"on"},
 	})
 	eco.Parse([]string{"eco", "--color", "hello"})
-	color := eco.GetOption("-c")
+	color := eco.OptionNamed("-c")
 	if !color.Seen {
 		t.Error("Expected color to be seen")
 	}
-	if color.Value[0] != "hello" {
+	if color.Values[0] != "hello" {
 		t.Error("Expected value to be hello")
+	}
+}
+
+func TestCmdParsing(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "This is a test.",
+		Aliases:     []string{"-t"},
+	})
+	find := MakeParser("find", "Find something.").AddOption(Option{
+		Description: "Language",
+		Aliases:     []string{"-l", "--language"},
+		Arguments:   []string{"name"},
+	})
+	eco.AddCommand(find)
+	res, err := eco.Parse([]string{"eco", "-t", "find", "-l", "JavaScript"})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if res != find {
+		t.Error("Expected to get find out of parser")
+		return
+	}
+	lang := res.OptionNamed("-l")
+	if lang.Seen == false {
+		t.Error("Expected to have toggled the JavaScript option")
+		return
+	}
+	if lang.Values[0] != "JavaScript" {
+		t.Error("Expected the language to be JavaScript.")
+		return
 	}
 }
 
@@ -223,11 +269,11 @@ func TestLongParsing(t *testing.T) {
 // 		Arguments:   []string{"on"},
 // 	})
 // 	eco.Parse([]string{"eco", "-c=off"})
-// 	color := eco.GetOption("-c")
+// 	color := eco.OptionNamed("-c")
 // 	if !color.Seen {
 // 		t.Error("Expected color to be seen")
 // 	}
-// 	if color.Value[0] != "off" {
+// 	if color.Values[0] != "off" {
 // 		t.Error("Expected value to be off")
 // 	}
 // }

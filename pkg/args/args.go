@@ -18,7 +18,7 @@ type Option struct {
 	// or not.
 	Seen bool
 	// Values represents the values associated with this option.
-	Value []string
+	Values []string
 }
 
 // An ArgumentParser handles parsing a slice of strings into CLI options.
@@ -65,8 +65,9 @@ func (arg *ArgumentParser) AddOption(opt Option) *ArgumentParser {
 	return arg
 }
 
-// GetOption retrieves an Option from an argument parser.
-func (arg *ArgumentParser) GetOption(alias string) *Option {
+// OptionNamed retrieves an Option from an argument parser by the name of its
+// alias.
+func (arg *ArgumentParser) OptionNamed(alias string) *Option {
 	el, ok := arg.aliasMap[alias]
 	if !ok {
 		return nil
@@ -87,8 +88,8 @@ func (arg *ArgumentParser) AddCommand(cmd *ArgumentParser) *ArgumentParser {
 	return arg
 }
 
-// GetCommand retrieves a command from the argument parser.
-func (arg *ArgumentParser) GetCommand(name string) *ArgumentParser {
+// CommandNamed retrieves a command from the argument parser by its name.
+func (arg *ArgumentParser) CommandNamed(name string) *ArgumentParser {
 	el, ok := arg.commandMap[name]
 	if !ok {
 		return nil
@@ -99,28 +100,35 @@ func (arg *ArgumentParser) GetCommand(name string) *ArgumentParser {
 // Parse recursively updates the Parser with information passed from a slice of
 // strings; the slice will be os.Args in most cases, but we give the choice to the
 // caller to facilitate simpler testing.
-func (arg *ArgumentParser) Parse(args []string) error {
-	if args[0] != arg.Name {
-		return fmt.Errorf("expected to parse %s command; got %s", args[0], arg.Name)
-	}
+func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 	argLen := len(args)
-	for i := 0; i < argLen; {
-		cur := args[i]
-		opt := arg.GetOption(cur)
+	// os.Args *starts* with the name of the command, so skip the first element
+	for i := 1; i < argLen; {
+		arg := args[i]
+
+		// Parse options of the form "-[alias] <arg1> <arg2> ... <argN>"
+		opt := parser.OptionNamed(arg)
 		if opt != nil {
 			opt.Seen = true
 			optArgLen := len(opt.Arguments)
 			if i+optArgLen > argLen {
-				return fmt.Errorf("option %s needs %d arguments, got %d", cur, optArgLen, argLen-i-1)
+				return nil, fmt.Errorf("option %s needs %d arguments, got %d", arg, optArgLen, argLen-i-1)
 			}
 			for j := 0; j < len(opt.Arguments); j++ {
 				i++
-				opt.Value = append(opt.Value, args[i])
+				opt.Values = append(opt.Values, args[i])
 			}
+			i++
+			continue
 		}
-		i++
+
+		cmd := parser.CommandNamed(arg)
+		if cmd != nil {
+			return cmd.Parse(args[i:])
+		}
+		return nil, fmt.Errorf("unexpected %s passed to cli", arg)
 	}
-	return nil
+	return parser, nil
 }
 
 const (
