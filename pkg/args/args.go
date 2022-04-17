@@ -102,52 +102,73 @@ func (arg *ArgumentParser) CommandNamed(name string) *ArgumentParser {
 // caller to facilitate simpler testing.
 func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 	argLen := len(args)
-	// os.Args *starts* with the name of the command, so skip the first element
+	// os.Args *starts* with the name of the command, so skip the first element.
 	for i := 1; i < argLen; {
 		arg := args[i]
 
-		var name string
-		var equalsArgs []string
+		// The simplest case: We've got a new subcommand. Hooray! Recurse.
+		cmd := parser.CommandNamed(arg)
+		if cmd != nil {
+			return cmd.Parse(args[i:])
+		}
 
+		// Now we have to handle options, which gets tricky because of = parsing.
 		opt := parser.OptionNamed(arg)
 
+		// Try to extract the name and arguments out of an option with an '='
+		// sign inside of it.
+		var name string
+		var equalsArgs []string
 		if opt == nil && arg[0] == '-' && strings.Contains(arg, "=") {
 			res := strings.Split(arg, "=")
 			name = res[0]
 			opt = parser.OptionNamed(name)
+			// Only create the extra slice when we have successfully found an '='
+			// option.
 			if opt != nil {
 				equalsArgs = strings.Split(res[1], ",")
 			}
 		}
 
-		if opt != nil {
-			opt.Seen = true
-			optArgLen := len(opt.Arguments)
-			equalsArgsLen := len(equalsArgs)
-			if equalsArgsLen == 0 {
-				if i+optArgLen > argLen {
-					return nil, fmt.Errorf("option %s needs %d arguments, got %d", arg, optArgLen, argLen-i-1)
-				}
-				for j := 0; j < len(opt.Arguments); j++ {
-					i++
-					opt.Values = append(opt.Values, args[i])
-				}
-			} else {
-				optArgLen := len(opt.Arguments)
-				if optArgLen != equalsArgsLen {
-					return nil, fmt.Errorf("option %s needs %d arguments, got %d", name, optArgLen, equalsArgsLen)
-				}
-				opt.Values = append(opt.Values, equalsArgs...)
-			}
-			i++
-			continue
+		// We've tried to get a command, and we've tried every possible way to get
+		// an option. Neither worked. Uh-oh: Our parser can't handle this element!
+		// Bail out early.
+		if opt == nil {
+			return nil, fmt.Errorf("unexpected %s", arg)
 		}
 
-		cmd := parser.CommandNamed(arg)
-		if cmd != nil {
-			return cmd.Parse(args[i:])
+		opt.Seen = true
+		optArgLen := len(opt.Arguments)
+		equalsArgsLen := len(equalsArgs)
+
+		// At this point, there are but four possiblities:
+		// 1. We used an '=' option, but there are too many/too few arguments.
+		// 2. We used a space option, but there aren't enough arguments.
+		// 3. We used an '=' option and everything is great.
+		// 4. We used a space option and everything is great.
+
+		if equalsArgsLen == 0 {
+			// Parse options of the form -[alias] <arg1> <arg2> <arg3> ... <argn>
+			// All extra options get treated as arguments to this option.
+			if i+optArgLen > argLen {
+				return nil, fmt.Errorf("option %s needs %d arguments, got %d", arg, optArgLen, argLen-i-1)
+			}
+			for j := 0; j < len(opt.Arguments); j++ {
+				// Careful trickery with i++ - we need to *mutate our
+				// position in the loop* while adding all the options.
+				i++
+				opt.Values = append(opt.Values, args[i])
+			}
+		} else {
+			// Parse options of the form -[alias]=<arg1>,<arg2>,<arg3>...<argn>
+			// Now it is possible to have too many options.
+			optArgLen := len(opt.Arguments)
+			if optArgLen != equalsArgsLen {
+				return nil, fmt.Errorf("option %s needs %d arguments, got %d", name, optArgLen, equalsArgsLen)
+			}
+			opt.Values = append(opt.Values, equalsArgs...)
 		}
-		return nil, fmt.Errorf("unexpected %s passed to cli", arg)
+		i++
 	}
 	return parser, nil
 }
