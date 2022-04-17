@@ -106,17 +106,38 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 	for i := 1; i < argLen; {
 		arg := args[i]
 
-		// Parse options of the form "-[alias] <arg1> <arg2> ... <argN>"
+		var name string
+		var equalsArgs []string
+
 		opt := parser.OptionNamed(arg)
+
+		if opt == nil && arg[0] == '-' && strings.Contains(arg, "=") {
+			res := strings.Split(arg, "=")
+			name = res[0]
+			opt = parser.OptionNamed(name)
+			if opt != nil {
+				equalsArgs = strings.Split(res[1], ",")
+			}
+		}
+
 		if opt != nil {
 			opt.Seen = true
 			optArgLen := len(opt.Arguments)
-			if i+optArgLen > argLen {
-				return nil, fmt.Errorf("option %s needs %d arguments, got %d", arg, optArgLen, argLen-i-1)
-			}
-			for j := 0; j < len(opt.Arguments); j++ {
-				i++
-				opt.Values = append(opt.Values, args[i])
+			equalsArgsLen := len(equalsArgs)
+			if equalsArgsLen == 0 {
+				if i+optArgLen > argLen {
+					return nil, fmt.Errorf("option %s needs %d arguments, got %d", arg, optArgLen, argLen-i-1)
+				}
+				for j := 0; j < len(opt.Arguments); j++ {
+					i++
+					opt.Values = append(opt.Values, args[i])
+				}
+			} else {
+				optArgLen := len(opt.Arguments)
+				if optArgLen != equalsArgsLen {
+					return nil, fmt.Errorf("option %s needs %d arguments, got %d", name, optArgLen, equalsArgsLen)
+				}
+				opt.Values = append(opt.Values, equalsArgs...)
 			}
 			i++
 			continue

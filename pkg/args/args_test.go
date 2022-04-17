@@ -262,18 +262,31 @@ func TestCmdParsing(t *testing.T) {
 	}
 }
 
-// func TestEqualsParsing(t *testing.T) {
-// 	eco := MakeParser("eco", "A command.").AddOption(Option{
-// 		Description: "Decide whether or not to use colors.",
-// 		Aliases:     []string{"-c", "--color"},
-// 		Arguments:   []string{"on"},
-// 	})
-// 	eco.Parse([]string{"eco", "-c=off"})
-// 	color := eco.OptionNamed("-c")
-// 	if !color.Seen {
-// 		t.Error("Expected color to be seen")
-// 	}
-// 	if color.Values[0] != "off" {
-// 		t.Error("Expected value to be off")
-// 	}
-// }
+func TestEqualsParsing(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	eco.Parse([]string{"eco", "-c=off"})
+	color := eco.OptionNamed("-c")
+	if !color.Seen {
+		t.Error("Expected color to be seen")
+	}
+	if color.Values[0] != "off" {
+		t.Error("Expected value to be off")
+	}
+}
+
+func TestEqualsParsingBadArgs(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	_, err := eco.Parse([]string{"eco", "-c=off,true"})
+	msg := err.Error()
+	if msg != "option -c needs 1 arguments, got 2" {
+		t.Errorf("Expected to get error message about too many args, got %s", msg)
+	}
+}
