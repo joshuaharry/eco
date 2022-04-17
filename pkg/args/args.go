@@ -119,6 +119,8 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 		// sign inside of it.
 		var name string
 		var equalsArgs []string
+		hadEquals := false
+
 		if opt == nil && arg[0] == '-' && strings.Contains(arg, "=") {
 			res := strings.Split(arg, "=")
 			name = res[0]
@@ -126,7 +128,13 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 			// Only create the extra slice when we have successfully found an '='
 			// option.
 			if opt != nil {
-				equalsArgs = strings.Split(res[1], ",")
+				hadEquals = true
+				// Edge case: When res[1] is empty, calling Split will create a slice
+				// with the empty string inside of it instead of an empty slice. Since
+				// we want some options to have no corresponding values, break early.
+				if res[1] != "" {
+					equalsArgs = strings.Split(res[1], ",")
+				}
 			}
 		}
 
@@ -137,35 +145,39 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 			return nil, fmt.Errorf("unexpected %s", arg)
 		}
 
+		// Have we seen this option before? Uh-oh: The user tried to specify it twice!
+		// Bail out again.
+		if opt.Seen {
+			var argName string
+			if hadEquals {
+				argName = name
+			} else {
+				argName = arg
+			}
+			return nil, fmt.Errorf("specified option %s twice", argName)
+		}
 		opt.Seen = true
+
 		optArgLen := len(opt.Arguments)
 		equalsArgsLen := len(equalsArgs)
 
-		// At this point, there are but four possiblities:
-		// 1. We used an '=' option, but there are too many/too few arguments.
-		// 2. We used a space option, but there aren't enough arguments.
-		// 3. We used an '=' option and everything is great.
-		// 4. We used a space option and everything is great.
+		// Bounds check both argument options.
+		if !hadEquals && i+optArgLen > argLen {
+			return nil, fmt.Errorf("option %s needs %d arguments, got %d", arg, optArgLen, argLen-i-1)
+		}
+		if hadEquals && equalsArgsLen != optArgLen {
+			return nil, fmt.Errorf("option %s needs %d arguments, got %d", name, optArgLen, equalsArgsLen)
+		}
 
-		if equalsArgsLen == 0 {
-			// Parse options of the form -[alias] <arg1> <arg2> <arg3> ... <argn>
-			// All extra options get treated as arguments to this option.
-			if i+optArgLen > argLen {
-				return nil, fmt.Errorf("option %s needs %d arguments, got %d", arg, optArgLen, argLen-i-1)
-			}
-			for j := 0; j < len(opt.Arguments); j++ {
+		// Set the options and continue the loop.
+		if !hadEquals {
+			for j := 0; j < optArgLen; j++ {
 				// Careful trickery with i++ - we need to *mutate our
 				// position in the loop* while adding all the options.
 				i++
 				opt.Values = append(opt.Values, args[i])
 			}
 		} else {
-			// Parse options of the form -[alias]=<arg1>,<arg2>,<arg3>...<argn>
-			// Now it is possible to have too many options.
-			optArgLen := len(opt.Arguments)
-			if optArgLen != equalsArgsLen {
-				return nil, fmt.Errorf("option %s needs %d arguments, got %d", name, optArgLen, equalsArgsLen)
-			}
 			opt.Values = append(opt.Values, equalsArgs...)
 		}
 		i++
@@ -223,16 +235,15 @@ func (arg *ArgumentParser) Help() string {
 		}
 	}
 
-	out := ``
-
-	out += "Usage: " + strings.Join(arg.Parents, " ") + " " + arg.Name
+	out := arg.Name
+	out += " - " + arg.Description + "\n\n"
+	out += "Usage:\n  " + strings.Join(arg.Parents, " ") + " " + arg.Name
 	if hasOptions {
-		out += " [OPTIONS]"
+		out += " [options]"
 	}
 	if hasCommands {
-		out += " COMMAND"
+		out += " command"
 	}
-	out += "\n\n" + arg.Description
 	if hasOptions {
 		out += "\n\nOptions:\n"
 		for i, opt := range arg.Options {
@@ -245,6 +256,7 @@ func (arg *ArgumentParser) Help() string {
 			out += "  " + cmd.Name + strings.Repeat(" ", maxLenCmds+PRINT_PADDING-len(cmd.Name)) + cmd.Description + "\n"
 		}
 	}
+	out += "\nFor more detailed information, please see the manual."
 
 	return out
 }

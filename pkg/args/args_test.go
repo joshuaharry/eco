@@ -8,10 +8,9 @@ import (
 func TestOptionCreation(t *testing.T) {
 	x := MakeParser("check", "This is a test")
 	desc := "This is a test."
-	oldOpt := Option{
-		Description: desc,
-		Arguments:   []string{"test"},
-		Aliases:     []string{"-t", "--test"},
+	oldOpt := Option{Description: desc,
+		Arguments: []string{"test"},
+		Aliases:   []string{"-t", "--test"},
 	}
 	x.AddOption(oldOpt)
 	opt := x.OptionNamed("-t")
@@ -288,5 +287,69 @@ func TestEqualsParsingBadArgs(t *testing.T) {
 	msg := err.Error()
 	if msg != "option -c needs 1 arguments, got 2" {
 		t.Errorf("Expected to get error message about too many args, got %s", msg)
+	}
+}
+
+func TestEqualsParsingBadArgsTooFew(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	_, err := eco.Parse([]string{"eco", "-c="})
+	if err == nil {
+		t.Error("Expected error")
+		return
+	}
+	msg := err.Error()
+	if msg != "option -c needs 1 arguments, got 0" {
+		t.Errorf("Expected to get error message about too many args, got %s", msg)
+	}
+}
+
+func TestEqualsParsingNoArgsOk(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{},
+	})
+	_, err := eco.Parse([]string{"eco", "-c="})
+	if err != nil {
+		t.Error("Expected no error")
+		return
+	}
+}
+
+func TestEqualsParsingNoArgsError(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{},
+	})
+	_, err := eco.Parse([]string{"eco", "-c=on"})
+	if err == nil {
+		t.Error("Expected an error")
+		return
+	}
+	msg := err.Error()
+	if msg != "option -c needs 0 arguments, got 1" {
+		t.Errorf("Bad error message %s", msg)
+	}
+}
+
+func TestSpecifiedTwice(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	_, err := eco.Parse([]string{"eco", "-c=on", "-c=off"})
+	if err == nil {
+		t.Error("Expected an error")
+		return
+	}
+	msg := err.Error()
+	if msg != "specified option -c twice" {
+		t.Errorf("Bad error message %s", msg)
 	}
 }
