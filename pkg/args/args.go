@@ -65,9 +65,9 @@ func (arg *ArgumentParser) AddOption(opt Option) *ArgumentParser {
 	return arg
 }
 
-// OptionNamed retrieves an Option from an argument parser by the name of its
+// Option retrieves an Option from an argument parser by the name of its
 // alias.
-func (arg *ArgumentParser) OptionNamed(alias string) *Option {
+func (arg *ArgumentParser) Option(alias string) *Option {
 	el, ok := arg.aliasMap[alias]
 	if !ok {
 		return nil
@@ -88,8 +88,8 @@ func (arg *ArgumentParser) AddCommand(cmd *ArgumentParser) *ArgumentParser {
 	return arg
 }
 
-// CommandNamed retrieves a command from the argument parser by its name.
-func (arg *ArgumentParser) CommandNamed(name string) *ArgumentParser {
+// Command retrieves a command from the argument parser by its name.
+func (arg *ArgumentParser) Command(name string) *ArgumentParser {
 	el, ok := arg.commandMap[name]
 	if !ok {
 		return nil
@@ -107,13 +107,13 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 		arg := args[i]
 
 		// The simplest case: We've got a new subcommand. Hooray! Recurse.
-		cmd := parser.CommandNamed(arg)
+		cmd := parser.Command(arg)
 		if cmd != nil {
 			return cmd.Parse(args[i:])
 		}
 
 		// Now we have to handle options, which gets tricky because of = parsing.
-		opt := parser.OptionNamed(arg)
+		opt := parser.Option(arg)
 
 		// Try to extract the name and arguments out of an option with an '='
 		// sign inside of it.
@@ -124,7 +124,7 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 		if opt == nil && arg[0] == '-' && strings.Contains(arg, "=") {
 			res := strings.Split(arg, "=")
 			name = res[0]
-			opt = parser.OptionNamed(name)
+			opt = parser.Option(name)
 			// Only create the extra slice when we have successfully found an '='
 			// option.
 			if opt != nil {
@@ -156,8 +156,6 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 			}
 			return nil, fmt.Errorf("specified option %s twice", argName)
 		}
-		opt.Seen = true
-
 		optArgLen := len(opt.Arguments)
 		equalsArgsLen := len(equalsArgs)
 
@@ -169,7 +167,9 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 			return nil, fmt.Errorf("option %s needs %d arguments, got %d", name, optArgLen, equalsArgsLen)
 		}
 
-		// Set the options and continue the loop.
+		// Success! All of the error conditions have been handled. Mark the
+		// option as seen and continue the loop.
+		opt.Seen = true
 		if !hadEquals {
 			for j := 0; j < optArgLen; j++ {
 				// Careful trickery with i++ - we need to *mutate our
