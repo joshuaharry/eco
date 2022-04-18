@@ -22,14 +22,15 @@ type GatewayHandler = func(gateway Gateway)
 
 type CommandMap = map[*args.ArgumentParser]GatewayHandler
 
-func RootAction(gateway Gateway) {
-	gateway.Error("Error: no command specified.")
-	gateway.Info(Root.Help())
-	gateway.Exit(1)
-}
-
 func Run(argv []string, gateway Gateway, commandMap CommandMap) {
-	fmt.Println(Root.Help())
+	cmd, err := Root.Parse(argv)
+	if err != nil {
+		gateway.Error("Error: " + err.Error() + "\n")
+		gateway.Error(cmd.Help())
+		gateway.Exit(1)
+		return
+	}
+	commandMap[cmd](gateway)
 }
 
 // Our main Gateway implementation that we use for the app.

@@ -357,3 +357,41 @@ func TestSpecifiedTwice(t *testing.T) {
 		t.Errorf("Bad error message %s", msg)
 	}
 }
+
+func TestErrorInNesting(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	find := MakeParser("find", "A command")
+	eco.AddCommand(find)
+	parser, err := eco.Parse([]string{"eco", "-c=on", "find", "-l="})
+	msg := err.Error()
+	if msg != "unrecognized option -l=" {
+		t.Errorf("Expected parsing error, got %s", msg)
+	}
+	if parser != find {
+		t.Error("Expected to get nested parser")
+	}
+
+}
+
+func TestCommandError(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	find := MakeParser("find", "A command")
+	eco.AddCommand(find)
+	parser, err := eco.Parse([]string{"eco", "-c=on", "find", "l-"})
+	msg := err.Error()
+	if msg != "unrecognized command l-" {
+		t.Errorf("Expected parsing error, got %s", msg)
+	}
+	if parser != find {
+		t.Error("Expected to get nested parser")
+	}
+
+}

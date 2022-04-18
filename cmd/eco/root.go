@@ -14,5 +14,12 @@ var Root *args.ArgumentParser = args.MakeParser("eco", "A tool for understanding
 })
 
 func HandleRoot(gateway Gateway) {
-
+	version := Root.Option("-v")
+	if version.Seen {
+		gateway.Info(VERSION)
+		gateway.Exit(0)
+		return
+	}
+	gateway.Info(Root.Help())
+	gateway.Exit(0)
 }

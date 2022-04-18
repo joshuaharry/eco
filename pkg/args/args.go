@@ -144,7 +144,11 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 		// an option. Neither worked. Uh-oh: Our parser can't handle this element!
 		// Bail out early.
 		if opt == nil {
-			return nil, fmt.Errorf("unexpected %s", arg)
+			if arg[0] == '-' {
+				return parser, fmt.Errorf("unrecognized option %s", arg)
+			} else {
+				return parser, fmt.Errorf("unrecognized command %s", arg)
+			}
 		}
 
 		// Have we seen this option before? Uh-oh: The user tried to specify it twice!
@@ -156,17 +160,17 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 			} else {
 				argName = arg
 			}
-			return nil, fmt.Errorf("specified option %s twice", argName)
+			return parser, fmt.Errorf("specified option %s twice", argName)
 		}
 		optArgLen := len(opt.Arguments)
 		equalsArgsLen := len(equalsArgs)
 
 		// Bounds check both argument options.
 		if !hadEquals && i+optArgLen > argLen {
-			return nil, fmt.Errorf("option %s needs %d arguments, got %d", arg, optArgLen, argLen-i-1)
+			return parser, fmt.Errorf("option %s needs %d arguments, got %d", arg, optArgLen, argLen-i-1)
 		}
 		if hadEquals && equalsArgsLen != optArgLen {
-			return nil, fmt.Errorf("option %s needs %d arguments, got %d", name, optArgLen, equalsArgsLen)
+			return parser, fmt.Errorf("option %s needs %d arguments, got %d", name, optArgLen, equalsArgsLen)
 		}
 
 		// Success! All of the error conditions have been handled. Mark the
