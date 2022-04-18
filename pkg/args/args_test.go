@@ -393,5 +393,34 @@ func TestCommandError(t *testing.T) {
 	if parser != find {
 		t.Error("Expected to get nested parser")
 	}
+}
 
+func TestReset(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	find := MakeParser("find", "A command").AddOption(Option{
+		Description: "Test thing.",
+		Aliases:     []string{"-t"},
+		Arguments:   []string{"a", "b"},
+	})
+	eco.AddCommand(find)
+	parser, err := eco.Parse([]string{"eco", "-c=on", "find", "-t", "-a", "-b"})
+	if err != nil {
+		t.Errorf("Expected no errors, got %s", err.Error())
+	}
+	eco.Reset()
+	colors := eco.Option("-c")
+	if colors.Seen {
+		t.Error("Expected reset to reset the colors")
+	}
+	if len(colors.Values) != 0 {
+		t.Errorf("Expected to have no values")
+	}
+	opt := parser.Option("-t")
+	if opt.Seen {
+		t.Error("Expected reset to reset the option")
+	}
 }

@@ -63,3 +63,25 @@ func TestEcoVersion(t *testing.T) {
 		t.Errorf("Expected root to include version, got %s\n", info)
 	}
 }
+
+// func TestVersionAndHelp(t *testing.T) {
+// 	exit := 5
+// 	errMsg := ""
+// 	gateway := Gateway{
+// 		Exit: func(code int) {
+// 			exit = code
+// 		},
+// 		Error: func(err string) {
+// 			errMsg = err
+// 		},
+// 		Info: func(inf string) {
+// 		},
+// 	}
+// 	Run([]string{"eco", "-v"}, gateway, Executors)
+// 	if exit != 0 {
+// 		t.Errorf("Expected to quit with exit 0, got %d\n", exit)
+// 	}
+// 	if errMsg != "" {
+// 		t.Errorf("Expected no error message, got %s\n", errMsg)
+// 	}
+// }

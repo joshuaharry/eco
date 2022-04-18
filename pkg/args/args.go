@@ -97,6 +97,19 @@ func (arg *ArgumentParser) Command(name string) *ArgumentParser {
 	return arg.Commands[el]
 }
 
+// Reset resets the state of a parser so that it can be reused again. While
+// parsing normally happens only once, this method is useful when writing tests
+// that need to test multiple passes of parsing.
+func (parser *ArgumentParser) Reset() {
+	for _, option := range parser.Options {
+		option.Seen = false
+		option.Values = []string{}
+	}
+	for _, parser := range parser.Commands {
+		parser.Reset()
+	}
+}
+
 // Parse recursively updates the Parser with information passed from a slice of
 // strings; the slice will be os.Args in most cases, but we give the choice to the
 // caller to facilitate simpler testing.
