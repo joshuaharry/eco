@@ -307,6 +307,23 @@ func TestEqualsParsingBadArgsTooFew(t *testing.T) {
 	}
 }
 
+func TestInvalidOptionBadArgs(t *testing.T) {
+	eco := MakeParser("eco", "A command.").AddOption(Option{
+		Description: "Decide whether or not to use colors.",
+		Aliases:     []string{"-c", "--color"},
+		Arguments:   []string{"on"},
+	})
+	parser, err := eco.Parse([]string{"eco", "-c="})
+	if err == nil {
+		t.Error("Expected error")
+		return
+	}
+	if parser != eco {
+		t.Error("Expected to get eco parser back")
+		return
+	}
+}
+
 func TestEqualsParsingNoArgsOk(t *testing.T) {
 	eco := MakeParser("eco", "A command.").AddOption(Option{
 		Description: "Decide whether or not to use colors.",

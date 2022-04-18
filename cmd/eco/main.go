@@ -18,11 +18,11 @@ type Gateway struct {
 	Info  func(string)
 }
 
-type GatewayHandler = func(gateway Gateway)
+type GatewayHandler = func(gateway *Gateway)
 
 type CommandMap = map[*args.ArgumentParser]GatewayHandler
 
-func Run(argv []string, gateway Gateway, commandMap CommandMap) {
+func Run(argv []string, gateway *Gateway, commandMap CommandMap) {
 	cmd, err := Root.Parse(argv)
 	if err != nil {
 		gateway.Error("Error: " + err.Error() + "\n")
@@ -44,11 +44,6 @@ var TopLevel Gateway = Gateway{
 	},
 }
 
-// Our main CommandMap that we use for our app.
-var Executors CommandMap = map[*args.ArgumentParser]GatewayHandler{
-	Root: HandleRoot,
-}
-
 func main() {
-	Run(os.Args, TopLevel, Executors)
+	Run(os.Args, &TopLevel, Executors)
 }

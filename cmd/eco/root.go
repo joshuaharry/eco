@@ -13,13 +13,18 @@ var Root *args.ArgumentParser = args.MakeParser("eco", "A tool for understanding
 	Description: "Print the version number and exit.",
 })
 
-func HandleRoot(gateway Gateway) {
+func HandleRoot(gateway *Gateway) {
 	version := Root.Option("-v")
-	if version.Seen {
+	help := Root.Option("-h")
+	if version.Seen && !help.Seen {
 		gateway.Info(VERSION)
 		gateway.Exit(0)
 		return
 	}
 	gateway.Info(Root.Help())
 	gateway.Exit(0)
+}
+
+var Executors CommandMap = map[*args.ArgumentParser]GatewayHandler{
+	Root: HandleRoot,
 }

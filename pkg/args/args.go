@@ -116,7 +116,7 @@ func (parser *ArgumentParser) Reset() {
 func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 	argLen := len(args)
 	// os.Args *starts* with the name of the command, so skip the first element.
-	for i := 1; i < argLen; {
+	for i := 1; i < argLen; i++ {
 		arg := args[i]
 
 		// The simplest case: We've got a new subcommand. Hooray! Recurse.
@@ -144,10 +144,9 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 				hadEquals = true
 				// Edge case: Typing in something like "-o=" and then running
 				// strings.Split creates a slice with an empty string inside
-				// it. This is almost certainly a user error we want to catch
-				// and warn about.
+				// it. This is a user error we want to catch and warn about.
 				if res[1] == "" {
-					return nil, fmt.Errorf("invalid option %s", arg)
+					return parser, fmt.Errorf("invalid option %s", arg)
 				}
 				equalsArgs = strings.Split(res[1], ",")
 			}
@@ -175,10 +174,11 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 			}
 			return parser, fmt.Errorf("specified option %s twice", argName)
 		}
+
+		// Bounds check both argument options.
 		optArgLen := len(opt.Arguments)
 		equalsArgsLen := len(equalsArgs)
 
-		// Bounds check both argument options.
 		if !hadEquals && i+optArgLen > argLen {
 			return parser, fmt.Errorf("option %s needs %d arguments, got %d", arg, optArgLen, argLen-i-1)
 		}
@@ -199,7 +199,6 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 		} else {
 			opt.Values = append(opt.Values, equalsArgs...)
 		}
-		i++
 	}
 	return parser, nil
 }

@@ -6,82 +6,87 @@ import (
 	"testing"
 )
 
-func TestRunNotEco(t *testing.T) {
-	var exit int
+// A ParseResult holds the information passed to a Gateway struct at the
+// top level.
+type ParseResult struct {
+	Exit  int
+	Error string
+	Info  string
+}
+
+// ParseAnd takes a list of arguments to parse and a CommandMap; it then
+// passes the result of parsing to fn before resetting the Root parser.
+func ParseAnd(argv []string, cmds CommandMap, fn func(res *ParseResult)) {
+	defer Root.Reset()
+	res := ParseResult{
+		Exit:  -1,
+		Error: "",
+		Info:  "",
+	}
 	gateway := Gateway{
 		Exit: func(code int) {
-			exit = code
+			res.Exit = code
 		},
-		Error: func(_ string) {},
-		Info:  func(_ string) {},
+		Error: func(err string) {
+			res.Error = err
+		},
+		Info: func(inf string) {
+			res.Info = inf
+		},
 	}
-	commandMap := map[*args.ArgumentParser]GatewayHandler{}
-	Run([]string{"not", "a", "real", "command"}, gateway, commandMap)
-	if exit != 1 {
-		t.Error("Expected to quit with exit 1")
-	}
+	Run(argv, &gateway, cmds)
+	fn(&res)
+}
+
+func emptyHandlers() CommandMap {
+	return map[*args.ArgumentParser]GatewayHandler{}
+}
+
+func TestRunNotEco(t *testing.T) {
+	ParseAnd([]string{"not", "real", "command"}, Executors, func(res *ParseResult) {
+		if res.Exit != 1 {
+			t.Error("Expected to quit with exit 1")
+		}
+	})
 }
 
 func TestEcoHelp(t *testing.T) {
-	exit := 5
-	info := ""
-	gateway := Gateway{
-		Exit: func(code int) {
-			exit = code
-		},
-		Error: func(_ string) {},
-		Info: func(inf string) {
-			info = inf
-		},
-	}
-	Run([]string{"eco"}, gateway, Executors)
-	if exit != 0 {
-		t.Error("Expected to quit with exit 0")
-	}
-	if !strings.Contains(info, Root.Help()) {
-		t.Error("Expected root to include help.")
-	}
+	ParseAnd([]string{"eco"}, Executors, func(res *ParseResult) {
+		if res.Exit != 0 {
+			t.Error("Expected to quit with exit 0")
+		}
+		if !strings.Contains(res.Info, Root.Help()) {
+			t.Error("Expected root to include help.")
+		}
+	})
 }
 
 func TestEcoVersion(t *testing.T) {
-	exit := 5
-	info := ""
-	gateway := Gateway{
-		Exit: func(code int) {
-			exit = code
-		},
-		Error: func(_ string) {},
-		Info: func(inf string) {
-			info = inf
-		},
-	}
-	Run([]string{"eco", "-v"}, gateway, Executors)
-	if exit != 0 {
-		t.Error("Expected to quit with exit 0")
-	}
-	if !strings.Contains(info, VERSION) {
-		t.Errorf("Expected root to include version, got %s\n", info)
-	}
+	ParseAnd([]string{"eco", "-v"}, Executors, func(res *ParseResult) {
+		if res.Exit != 0 {
+			t.Error("Expected to quit with exit 0")
+		}
+		if !strings.Contains(res.Info, VERSION) {
+			t.Errorf("Expected root to include version, got %s\n", res.Info)
+		}
+	})
 }
 
-// func TestVersionAndHelp(t *testing.T) {
-// 	exit := 5
-// 	errMsg := ""
-// 	gateway := Gateway{
-// 		Exit: func(code int) {
-// 			exit = code
-// 		},
-// 		Error: func(err string) {
-// 			errMsg = err
-// 		},
-// 		Info: func(inf string) {
-// 		},
-// 	}
-// 	Run([]string{"eco", "-v"}, gateway, Executors)
-// 	if exit != 0 {
-// 		t.Errorf("Expected to quit with exit 0, got %d\n", exit)
-// 	}
-// 	if errMsg != "" {
-// 		t.Errorf("Expected no error message, got %s\n", errMsg)
-// 	}
-// }
+func TestInvalidCommand(t *testing.T) {
+	ParseAnd([]string{"eco", "-h="}, Executors, func(res *ParseResult) {
+		if res.Exit != 1 {
+			t.Error("Expected to quit with exit 1")
+		}
+	})
+}
+
+func TestEcoVersionAndHelp(t *testing.T) {
+	ParseAnd([]string{"eco", "-v", "-h"}, Executors, func(res *ParseResult) {
+		if res.Exit != 0 {
+			t.Error("Expected to quit with exit 0")
+		}
+		if !strings.Contains(res.Info, Root.Help()) {
+			t.Errorf("Expected root to include help, got %s\n", res.Info)
+		}
+	})
+}
