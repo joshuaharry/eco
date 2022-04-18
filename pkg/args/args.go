@@ -65,8 +65,8 @@ func (arg *ArgumentParser) AddOption(opt Option) *ArgumentParser {
 	return arg
 }
 
-// Option retrieves an Option from an argument parser by the name of its
-// alias.
+// Option retrieves an Option from an argument parser by an alias name, such as
+// "-c" or "-v".
 func (arg *ArgumentParser) Option(alias string) *Option {
 	el, ok := arg.aliasMap[alias]
 	if !ok {
@@ -97,9 +97,9 @@ func (arg *ArgumentParser) Command(name string) *ArgumentParser {
 	return arg.Commands[el]
 }
 
-// Reset resets the state of a parser so that it can be reused again. While
-// parsing normally happens only once, this method is useful when writing tests
-// that need to test multiple passes of parsing.
+// Reset resets the state of a parser so that it can be reused again. If you
+// want to safely reuse a parser (e.g., inside of a test suite), you need to
+// call this function.
 func (parser *ArgumentParser) Reset() {
 	for _, option := range parser.Options {
 		option.Seen = false
@@ -111,8 +111,8 @@ func (parser *ArgumentParser) Reset() {
 }
 
 // Parse recursively updates the Parser with information passed from a slice of
-// strings; the slice will be os.Args in most cases, but we give the choice to the
-// caller to facilitate simpler testing.
+// strings. Running Parse *mutates* the options configured inside the parser;
+// these side effects make calling it multiple times unsafe by default.
 func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 	argLen := len(args)
 	// os.Args *starts* with the name of the command, so skip the first element.
@@ -125,7 +125,8 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 			return cmd.Parse(args[i:])
 		}
 
-		// Now we have to handle options, which gets tricky because of = parsing.
+		// Now we have to handle options. If we have an option like "-a b", we
+		// get to extract it right away.
 		opt := parser.Option(arg)
 
 		// Try to extract the name and arguments out of an option with an '='
