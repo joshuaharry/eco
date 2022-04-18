@@ -302,8 +302,8 @@ func TestEqualsParsingBadArgsTooFew(t *testing.T) {
 		return
 	}
 	msg := err.Error()
-	if msg != "option -c needs 1 arguments, got 0" {
-		t.Errorf("Expected to get error message about too many args, got %s", msg)
+	if msg != "invalid option -c=" {
+		t.Errorf("Expected to get error message about invalid arguments, got %s", msg)
 	}
 }
 
@@ -314,9 +314,13 @@ func TestEqualsParsingNoArgsOk(t *testing.T) {
 		Arguments:   []string{},
 	})
 	_, err := eco.Parse([]string{"eco", "-c="})
-	if err != nil {
-		t.Error("Expected no error")
+	if err == nil {
+		t.Error("Expected error")
 		return
+	}
+	msg := err.Error()
+	if msg != "invalid option -c=" {
+		t.Errorf("Expected message about invalid option, got %s\n", msg)
 	}
 }
 

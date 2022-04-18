@@ -129,12 +129,14 @@ func (parser *ArgumentParser) Parse(args []string) (*ArgumentParser, error) {
 			// option.
 			if opt != nil {
 				hadEquals = true
-				// Edge case: When res[1] is empty, calling Split will create a slice
-				// with the empty string inside of it instead of an empty slice. Since
-				// we want some options to have no corresponding values, break early.
-				if res[1] != "" {
-					equalsArgs = strings.Split(res[1], ",")
+				// Edge case: Typing in something like "-o=" and then running
+				// strings.Split creates a slice with an empty string inside
+				// it. This is almost certainly a user error we want to catch
+				// and warn about.
+				if res[1] == "" {
+					return nil, fmt.Errorf("invalid option %s", arg)
 				}
+				equalsArgs = strings.Split(res[1], ",")
 			}
 		}
 
