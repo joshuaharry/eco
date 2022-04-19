@@ -36,6 +36,9 @@ func Run(argv []string, gateway *Gateway, commandMap CommandMap) {
 	commandMap[cmd](gateway)
 }
 
+// TopLevel provides a side-effectful handlers that do things like printing to
+// standard out and quitting the currently running process. Fortunately, these
+// are simple enough to verify by inspection.
 var TopLevel Gateway = Gateway{
 	Exit: os.Exit,
 	Error: func(msg string) {

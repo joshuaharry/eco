@@ -2,6 +2,7 @@ package main
 
 import (
 	"eco/pkg/args"
+	"eco/pkg/find"
 	"strings"
 	"testing"
 )
@@ -16,6 +17,8 @@ type ParseResult struct {
 
 // ParseAnd takes a list of arguments to parse and a CommandMap; it then
 // passes the result of parsing to fn before resetting the Root parser.
+// Using this function with the continuation fn lets us invoke Root.Parse
+// multiple times without worrying about needing to reset its state.
 func ParseAnd(argv []string, cmds CommandMap, fn func(res *ParseResult)) {
 	defer Root.Reset()
 	res := ParseResult{
@@ -87,6 +90,90 @@ func TestEcoVersionAndHelp(t *testing.T) {
 		}
 		if !strings.Contains(res.Info, Root.Help()) {
 			t.Errorf("Expected root to include help, got %s\n", res.Info)
+		}
+	})
+}
+
+func TestFindHelp(t *testing.T) {
+	var req *find.Request
+	handleFindRequest := func(gateway *Gateway) {
+		InvokeFindHandler(gateway, func(r *find.Request) {
+			req = r
+		})
+	}
+	executors := map[*args.ArgumentParser]GatewayHandler{
+		Find: handleFindRequest,
+	}
+	ParseAnd([]string{"eco", "find", "-h"}, executors, func(res *ParseResult) {
+		if req != nil {
+			t.Error("Expected to get no result in this branch")
+		}
+		if !strings.Contains(res.Info, Find.Help()) {
+			t.Errorf("Expected Find help in gateway info, got %s\n", res.Info)
+		}
+	})
+}
+
+func TestFindNoName(t *testing.T) {
+	var req *find.Request
+	handleFindRequest := func(gateway *Gateway) {
+		InvokeFindHandler(gateway, func(r *find.Request) {
+			req = r
+		})
+	}
+	executors := map[*args.ArgumentParser]GatewayHandler{
+		Find: handleFindRequest,
+	}
+	ParseAnd([]string{"eco", "find"}, executors, func(res *ParseResult) {
+		if req != nil {
+			t.Error("Expected to get no result in this branch")
+		}
+		if !strings.Contains(res.Error, Find.Help()) {
+			t.Errorf("Expected Find help in gateway error, got %s\n", res.Error)
+		}
+	})
+}
+
+func TestFindNoLanguage(t *testing.T) {
+	var req *find.Request
+	handleFindRequest := func(gateway *Gateway) {
+		InvokeFindHandler(gateway, func(r *find.Request) {
+			req = r
+		})
+	}
+	executors := map[*args.ArgumentParser]GatewayHandler{
+		Find: handleFindRequest,
+	}
+	ParseAnd([]string{"eco", "find", "-n=js"}, executors, func(res *ParseResult) {
+		if req != nil {
+			t.Error("Expected to get no result in this branch")
+		}
+		if !strings.Contains(res.Error, Find.Help()) {
+			t.Errorf("Expected Find help in gateway error, got %s\n", res.Error)
+		}
+	})
+}
+
+func TestFindSuccess(t *testing.T) {
+	var req *find.Request
+	handleFindRequest := func(gateway *Gateway) {
+		InvokeFindHandler(gateway, func(r *find.Request) {
+			req = r
+		})
+	}
+	executors := map[*args.ArgumentParser]GatewayHandler{
+		Find: handleFindRequest,
+	}
+	ParseAnd([]string{"eco", "find", "-n=react", "-l=js"}, executors, func(res *ParseResult) {
+		if req == nil {
+			t.Error("Expected to successfully get request")
+		}
+		expect := find.Request{
+			ID:       "react",
+			Language: "js",
+		}
+		if *req != expect {
+			t.Error("Expected to get ", expect, " but got ", *req)
 		}
 	})
 }
