@@ -254,9 +254,16 @@ func (arg *ArgumentParser) Help() string {
 		}
 	}
 
-	out := arg.Name
+	var cmdName string
+	if len(arg.Parents) > 0 {
+		cmdName = strings.Join(arg.Parents, " ") + " " + arg.Name
+	} else {
+		cmdName = arg.Name
+	}
+
+	out := cmdName
 	out += " - " + arg.Description + "\n\n"
-	out += "Usage:\n  " + strings.Join(arg.Parents, " ") + " " + arg.Name
+	out += "Usage:\n  " + cmdName
 	if hasOptions {
 		out += " [options]"
 	}
