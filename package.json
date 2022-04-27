@@ -31,7 +31,10 @@
     ],
     "transform": {
       "^.+\\.(t|j)sx?$": "@swc/jest"
-    }
+    },
+    "testPathIgnorePatterns": [
+      "<rootDir>/dist"
+    ]
   },
   "eslintConfig": {
     "root": true,
