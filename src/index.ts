@@ -1,3 +1,4 @@
-console.log("Hello, world!");
-
-const x: any = 3;
+import axios from "axios";
+import commander from "commander";
+console.log(axios);
+console.log(commander);
