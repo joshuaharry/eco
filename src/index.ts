@@ -1,4 +1,7 @@
-import axios from "axios";
-import commander from "commander";
-console.log(axios);
-console.log(commander);
+import { parseArgv } from "./argParse";
+import { interpret } from "./interpret";
+
+if (require.main === module) {
+  const req = parseArgv(process.argv);
+  interpret(req);
+}
