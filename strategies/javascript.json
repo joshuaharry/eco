@@ -6,7 +6,13 @@
     "timeout": 5000,
     "dependencies": {
       "required": [
-        { "program": "node", "command": "--version", "includes": "16" },
+        {
+          "program": "node",
+          "checkOutput": {
+            "argument": "--version",
+            "includes": "16"
+          }
+        },
         { "program": "git" }
       ]
     }

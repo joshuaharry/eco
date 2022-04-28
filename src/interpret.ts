@@ -1,3 +1,8 @@
+import { run, mkdirp, readlines } from "./util";
+import { randomUUID } from "crypto";
+import path from "path";
+import os from "os";
+
 export interface StrategyRequest {
   // Where is the JSON file with the strategy located?
   strategyPath: string;
@@ -5,27 +10,6 @@ export interface StrategyRequest {
   filesPath: string;
 }
 
-interface SystemDependency {
-  program: string;
-  command: string;
-  mustHave: string;
-}
-
-interface StrategyConfig {
-  // What is the name of this strategy?
-  name: string;
-  // Who wrote the strategy?
-  author: string;
-  // What is the license associated with this strategy?
-  license: string;
-  // What is the timeout of the strategy?
-  timeout: number;
-  // What are the system dependencies of the strategy?
-  dependencies: {
-    required: Array<SystemDependency>;
-  };
-}
-
-export const interpret = (req: StrategyRequest) => {
+export const interpret = async (req: StrategyRequest) => {
   return req;
 };

@@ -5,11 +5,17 @@
   "bin": {
     "eco": "./dist/index.js"
   },
+  "dependencies": {
+    "ajv": "^8.11.0",
+    "axios": "^0.27.2",
+    "mkdirp": "^1.0.4"
+  },
   "scripts": {
-    "build": "tsc && pkg . --out-path dist/",
     "watch": "tsc --watch",
     "test": "jest",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "prepare": "mkdir -p ~/.eco/ && cp ./strategy-schema.json ~/.eco",
+    "build": "sh build.sh"
   },
   "repository": {
     "type": "git",
@@ -61,12 +67,10 @@
   "prettier": {
     "bracketSameLine": true
   },
-  "dependencies": {
-    "axios": "^0.27.2"
-  },
   "devDependencies": {
     "@swc/core": "^1.2.172",
     "@swc/jest": "^0.2.20",
+    "@types/fs-extra": "^9.0.13",
     "@types/jest": "^27.4.1",
     "@types/node": "^17.0.29",
     "@typescript-eslint/eslint-plugin": "^5.21.0",
@@ -78,6 +82,7 @@
     "lint-staged": "^12.4.1",
     "pkg": "^5.6.0",
     "prettier": "^2.6.2",
+    "ts-json-schema-generator": "^1.0.0",
     "typescript": "^4.6.3"
   }
 }
