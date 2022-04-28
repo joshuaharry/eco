@@ -14,8 +14,8 @@
     "watch": "tsc --watch",
     "test": "jest",
     "lint-staged": "lint-staged",
-    "prepare": "mkdir -p ~/.eco/ && cp ./strategy-schema.json ~/.eco",
-    "build": "sh build.sh"
+    "postinstall": "sh ./build/build.sh",
+    "build": "sh ./build/build.sh"
   },
   "repository": {
     "type": "git",

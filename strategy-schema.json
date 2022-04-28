@@ -33,27 +33,87 @@
             "steps": {
               "type": "array",
               "items": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "run": {
+                        "type": "string"
+                      },
+                      "timeout": {
+                        "type": "number"
+                      }
+                    },
+                    "required": ["name", "run"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "uses": {
+                        "type": "string",
+                        "const": "@eco/find"
+                      },
+                      "ecosystem": {
+                        "type": "string"
+                      },
+                      "timeout": {
+                        "type": "number"
+                      }
+                    },
+                    "required": ["name", "uses", "ecosystem"],
+                    "additionalProperties": false
                   }
-                },
-                "required": ["name"],
-                "additionalProperties": false
+                ]
               }
             },
             "cleanup": {
               "type": "array",
               "items": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "run": {
+                        "type": "string"
+                      },
+                      "timeout": {
+                        "type": "number"
+                      }
+                    },
+                    "required": ["name", "run"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "uses": {
+                        "type": "string",
+                        "const": "@eco/find"
+                      },
+                      "ecosystem": {
+                        "type": "string"
+                      },
+                      "timeout": {
+                        "type": "number"
+                      }
+                    },
+                    "required": ["name", "uses", "ecosystem"],
+                    "additionalProperties": false
                   }
-                },
-                "required": ["name"],
-                "additionalProperties": false
+                ]
               }
             }
           },

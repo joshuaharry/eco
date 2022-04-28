@@ -21,7 +21,8 @@
     "steps": [
       {
         "name": "Download the Source Code",
-        "uses": "@packagebuddy/find",
+        "uses": "@eco/find",
+        "ecosystem": "javascript",
         "timeout": 30
       },
       {

@@ -13,10 +13,24 @@ interface StrategyConfig {
   dependencies: Dependencies;
 }
 
-// A step in the strategy which usually corresponds to some shell command.
-interface StrategyStep {
-  name: string;
-}
+// A step in the strategy. Usually, these correspond to shell commands, but
+// we have some built-in directives for handling special cases like cloning
+// a repository from GitHub.
+//
+// NOTE: If you need to add a new directive, add another variant to this
+// type.
+type StrategyStep =
+  | {
+      name: string;
+      run: string;
+      timeout?: number;
+    }
+  | {
+      name: string;
+      uses: "@eco/find";
+      ecosystem: string;
+      timeout?: number;
+    };
 
 interface StrategyAction {
   steps: Array<StrategyStep>;
