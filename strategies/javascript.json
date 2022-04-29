@@ -36,8 +36,8 @@
     ],
     "cleanup": [
       {
-        "name": "Delete the source code",
-        "run": "rm -rf ."
+        "name": "Delete the package's dependencies",
+        "run": "rm -rf node_modules"
       }
     ]
   }
