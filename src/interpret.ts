@@ -4,12 +4,13 @@ import type { Strategy } from "./language";
 import path from "path";
 import os from "os";
 import Ajv, { AnySchema } from "ajv";
+import { validate } from "./dependencies";
 
 const ajv = new Ajv();
 const schema = readJson(
   path.join(os.homedir(), ".eco", "strategies", "strategy-schema.json")
 );
-const validate = ajv.compile(schema as AnySchema);
+const validateSchema = ajv.compile(schema as AnySchema);
 
 export interface StrategyRequest {
   // Where is the JSON file with the strategy located?
@@ -27,12 +28,12 @@ export interface StrategyToRun {
 
 const resolveRequest = (req: StrategyRequest): StrategyToRun => {
   const strategy = readJson(path.normalize(req.strategyPath)) as Strategy;
-  const valid = validate(strategy);
+  const valid = validateSchema(strategy);
   if (!valid) {
     console.error(
       `Fatal errors while validating strategy: ${req.strategyPath}`
     );
-    validate?.errors?.forEach((mistake) => {
+    validateSchema?.errors?.forEach((mistake) => {
       console.dir(mistake, { depth: null, colors: !process.env["NO_COLOR"] });
     });
     process.exit(1);
@@ -43,6 +44,7 @@ const resolveRequest = (req: StrategyRequest): StrategyToRun => {
 
 export const interpret = async (req: StrategyRequest) => {
   const { strategy, packages } = resolveRequest(req);
+  validate(strategy.config.dependencies);
   console.log(strategy);
   console.log(packages);
 };
