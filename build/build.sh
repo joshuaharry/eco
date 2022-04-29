@@ -12,4 +12,4 @@ cp -r ./strategies ~/.eco
 cp ./strategy-schema.json ~/.eco/strategies
 printf "Compiling TypeScript...\n";
 tsc
-pkg . --out-path dist/ 
+printf "Done.\n";

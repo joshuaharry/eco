@@ -29,15 +29,22 @@ const validateDependency = async (dep: SystemDependency): Promise<void> => {
   if (!dep.checkOutput) return;
   const { includes, argument } = dep.checkOutput;
   const command = `${dep.program} ${argument}`;
-  const { stdout, stderr } = await run(`${dep.program} ${argument}`);
-  if (!stdout.includes(includes)) {
-    console.error(`Fatal error: We expected the output of ${command} to include ${includes}
+  try {
+    const { stdout, stderr } = await run(command);
+    if (!stdout.includes(includes)) {
+      console.error(`Fatal error: We expected the output of ${command} to include ${includes}
 
 STDERR:
   ${stderr}
 
 STDOUT:
   ${stdout}`);
+      process.exit(1);
+    }
+  } catch (err) {
+    console.error(`Fatal error when trying to run ${command}
+
+                  ${err}`);
     process.exit(1);
   }
 };

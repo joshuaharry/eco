@@ -43,8 +43,6 @@ const resolveRequest = (req: StrategyRequest): StrategyToRun => {
 };
 
 export const interpret = async (req: StrategyRequest) => {
-  const { strategy, packages } = resolveRequest(req);
-  validate(strategy.config.dependencies);
-  console.log(strategy);
-  console.log(packages);
+  const { strategy } = resolveRequest(req);
+  await validate(strategy.config.dependencies);
 };
