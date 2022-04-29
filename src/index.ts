@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { parseArgv } from "./argParse";
 import { interpret } from "./interpret";
 
