@@ -107,13 +107,10 @@ const executeSteps = async (req: ExecuteRequest) => {
   log(`Finished running strategy for ${lib}`);
 };
 
-export const execute = async (
-  toRun: StrategyToRun,
-  id: string
-): Promise<void> => {
+export const execute = async (toRun: StrategyToRun): Promise<void> => {
   for (const lib of toRun.packages) {
     const logFile = path.join(process.cwd(), lib);
-    const cwd = path.join(SANDBOX_DIR, id, `${lib}`);
+    const cwd = path.join(SANDBOX_DIR, lib);
     await rm(cwd, { force: true, recursive: true });
     await mkdirp(cwd);
     await executeSteps({
@@ -135,7 +132,5 @@ export const interpret = async (req: StrategyRequest) => {
   const runPath = path.join(ECO_DIR, strategy.config.name, startTime);
   await mkdirp(runPath);
   process.chdir(runPath);
-  const id = strategy.config.name + "-" + startTime;
-  console.log(id);
-  await execute(toRun, id);
+  await execute(toRun);
 };

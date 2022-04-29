@@ -27,7 +27,7 @@
       },
       {
         "name": "Install the Dependencies",
-        "run": "ls $PWD && npm install --legacy-peerdeps && npm test"
+        "run": "npm install --legacy-peerdeps"
       },
       {
         "name": "Run the Unit Tests",
@@ -37,7 +37,7 @@
     "cleanup": [
       {
         "name": "Delete the source code",
-        "run": "ls"
+        "run": "rm -rf ."
       }
     ]
   }
