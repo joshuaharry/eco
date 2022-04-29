@@ -1,14 +1,14 @@
 {
   "name": "eco",
   "version": "1.0.0",
-  "description": "",
+  "description": "A tool for understanding your software's ecosystem.",
   "bin": {
     "eco": "./dist/index.js"
   },
   "dependencies": {
     "ajv": "^8.11.0",
     "axios": "^0.27.2",
-    "mkdirp": "^1.0.4",
+    "fs-extra": "^10.1.0",
     "tree-kill": "^1.2.2"
   },
   "scripts": {
