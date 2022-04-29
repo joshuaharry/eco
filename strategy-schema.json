@@ -1,13 +1,77 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/Strategy",
   "definitions": {
+    "EcoFind": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "uses": {
+          "type": "string",
+          "const": "@eco/find"
+        },
+        "ecosystem": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": "number"
+        }
+      },
+      "required": ["name", "uses", "ecosystem"],
+      "additionalProperties": false
+    },
+    "StrategyStep": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "run": {
+              "type": "string"
+            },
+            "timeout": {
+              "type": "number"
+            }
+          },
+          "required": ["name", "run"],
+          "additionalProperties": false
+        },
+        {
+          "$ref": "#/definitions/EcoFind"
+        }
+      ]
+    },
+    "StrategyAction": {
+      "type": "object",
+      "properties": {
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StrategyStep"
+          }
+        },
+        "cleanup": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StrategyStep"
+          }
+        }
+      },
+      "required": ["steps", "cleanup"],
+      "additionalProperties": false
+    },
     "Strategy": {
       "type": "object",
       "properties": {
         "config": {
           "type": "object",
           "properties": {
+            "ecoVersion": {
+              "type": "string"
+            },
             "name": {
               "type": "string"
             },
@@ -24,101 +88,18 @@
               "$ref": "#/definitions/Dependencies"
             }
           },
-          "required": ["name", "author", "license", "timeout", "dependencies"],
+          "required": [
+            "ecoVersion",
+            "name",
+            "author",
+            "license",
+            "timeout",
+            "dependencies"
+          ],
           "additionalProperties": false
         },
         "action": {
-          "type": "object",
-          "properties": {
-            "steps": {
-              "type": "array",
-              "items": {
-                "anyOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "run": {
-                        "type": "string"
-                      },
-                      "timeout": {
-                        "type": "number"
-                      }
-                    },
-                    "required": ["name", "run"],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "uses": {
-                        "type": "string",
-                        "const": "@eco/find"
-                      },
-                      "ecosystem": {
-                        "type": "string"
-                      },
-                      "timeout": {
-                        "type": "number"
-                      }
-                    },
-                    "required": ["name", "uses", "ecosystem"],
-                    "additionalProperties": false
-                  }
-                ]
-              }
-            },
-            "cleanup": {
-              "type": "array",
-              "items": {
-                "anyOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "run": {
-                        "type": "string"
-                      },
-                      "timeout": {
-                        "type": "number"
-                      }
-                    },
-                    "required": ["name", "run"],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "uses": {
-                        "type": "string",
-                        "const": "@eco/find"
-                      },
-                      "ecosystem": {
-                        "type": "string"
-                      },
-                      "timeout": {
-                        "type": "number"
-                      }
-                    },
-                    "required": ["name", "uses", "ecosystem"],
-                    "additionalProperties": false
-                  }
-                ]
-              }
-            }
-          },
-          "required": ["steps", "cleanup"],
-          "additionalProperties": false
+          "$ref": "#/definitions/StrategyAction"
         }
       },
       "required": ["config", "action"],
@@ -156,6 +137,63 @@
       },
       "required": ["required"],
       "additionalProperties": false
+    },
+    "ExecuteRequest": {
+      "type": "object",
+      "properties": {
+        "defaultTimeout": {
+          "type": "number"
+        },
+        "lib": {
+          "type": "string"
+        },
+        "cwd": {
+          "type": "string"
+        },
+        "logFile": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StrategyStep"
+          }
+        },
+        "cleanup": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StrategyStep"
+          }
+        }
+      },
+      "required": [
+        "defaultTimeout",
+        "lib",
+        "cwd",
+        "logFile",
+        "steps",
+        "cleanup"
+      ],
+      "additionalProperties": false
+    },
+    "OperationTimeout": {
+      "type": "string",
+      "const": "OPERATION_TIMEOUT"
+    },
+    "StepResult": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "STEP_SUCCESS"
+        },
+        {
+          "type": "string",
+          "const": "STEP_FAILURE"
+        },
+        {
+          "$ref": "#/definitions/OperationTimeout"
+        }
+      ]
     }
   }
 }

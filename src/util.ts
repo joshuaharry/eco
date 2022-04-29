@@ -1,9 +1,11 @@
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
-export { mkdirp } from "fs-extra";
+export { mkdirp, rm } from "fs-extra";
+export { appendFile } from "fs/promises";
 import { readFileSync, createWriteStream } from "fs-extra";
 import { setTimeout } from "timers/promises";
 import treeKill from "tree-kill";
+import type { OperationTimeout, StepResult } from "./language";
 
 export const run = promisify(exec);
 
@@ -43,14 +45,11 @@ export const readJson = (filePath: string): unknown => {
 };
 
 interface Command {
+  cwd: string;
   outputFile: string;
   command: string;
   timeout: number;
 }
-
-type OperationTimeout = "OPERATION_TIMEOUT";
-
-type RaceResult = "STEP_SUCCESS" | "STEP_FAILURE" | OperationTimeout;
 
 interface TimeoutOperation<T = unknown, U = unknown> {
   promise: Promise<T>;
@@ -69,7 +68,7 @@ const runTimeout = async <T>(
     if (err.code !== "ABORT_ERR") {
       throw err;
     }
-  }) as Promise<RaceResult>;
+  }) as Promise<StepResult>;
   const res = (await Promise.race([promise, timeoutPromise])) as
     | T
     | OperationTimeout;
@@ -81,13 +80,17 @@ const runTimeout = async <T>(
   return res;
 };
 
-export const runCommand = async (cmd: Command): Promise<RaceResult> => {
-  const { outputFile, command, timeout } = cmd;
+export const log = (message: string) => {
+  console.log(`${new Date().toISOString()}: ${message}`);
+};
+
+export const runCommand = async (cmd: Command): Promise<StepResult> => {
+  const { outputFile, command, timeout, cwd } = cmd;
 
   const stream = createWriteStream(outputFile, { flags: "a" });
-  const ongoingCommand = spawn(command, { shell: true });
+  const ongoingCommand = spawn(command, { shell: true, cwd });
 
-  const runningCommand: Promise<RaceResult> = new Promise((res, rej) => {
+  const runningCommand: Promise<StepResult> = new Promise((res, rej) => {
     ongoingCommand.stdout.pipe(stream);
     ongoingCommand.stderr.pipe(stream);
     ongoingCommand.on("error", (err) => {

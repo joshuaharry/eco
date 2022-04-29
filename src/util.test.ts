@@ -23,6 +23,7 @@ describe("Our run method", () => {
       command: "sleep 3000 && exit 0",
       timeout: 0,
       outputFile: "test.log",
+      cwd: process.cwd(),
     });
     expect(res).toEqual("OPERATION_TIMEOUT");
   });
@@ -31,6 +32,7 @@ describe("Our run method", () => {
       command: "exit 0",
       timeout: 3000,
       outputFile: "test.log",
+      cwd: process.cwd(),
     });
     expect(res).toEqual("STEP_SUCCESS");
   });
@@ -39,6 +41,7 @@ describe("Our run method", () => {
       command: "exit 1",
       timeout: 3000,
       outputFile: "test.log",
+      cwd: process.cwd(),
     });
     expect(res).toEqual("STEP_FAILURE");
   });

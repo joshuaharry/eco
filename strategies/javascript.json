@@ -3,7 +3,8 @@
     "name": "JavaScript",
     "author": "Joshua Hoeflich",
     "license": "MIT",
-    "timeout": 5000,
+    "timeout": 180000,
+    "ecoVersion": "0.0.0",
     "dependencies": {
       "required": [
         {
@@ -22,8 +23,11 @@
       {
         "name": "Download the Source Code",
         "uses": "@eco/find",
-        "ecosystem": "javascript",
-        "timeout": 30
+        "ecosystem": "npm"
+      },
+      {
+        "name": "Install the Dependencies",
+        "run": "ls $PWD && npm install --legacy-peerdeps && npm test"
       },
       {
         "name": "Run the Unit Tests",
@@ -33,7 +37,7 @@
     "cleanup": [
       {
         "name": "Delete the source code",
-        "run": "rm -rf ."
+        "run": "ls"
       }
     ]
   }
