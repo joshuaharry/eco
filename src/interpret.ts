@@ -99,18 +99,28 @@ const executeSteps = async (req: ExecuteRequest) => {
         break;
       }
     }
+  } catch (err) {
+    log(`toplevel error triggered by ${lib}`);
   } finally {
     for (const [i, step] of cleanup.entries()) {
-      await appendFile(
-        logFile,
-        `${new Date().toISOString()}: ${step.name} - ${i + 1}/${
-          cleanup.length
-        }\n-----------------\n`
-      );
-      await executeStep(step, req);
+      try {
+        await appendFile(
+          logFile,
+          `${new Date().toISOString()}: ${step.name} - ${i + 1}/${
+            cleanup.length
+          }\n-----------------\n`
+        );
+        await executeStep(step, req);
+      } catch (err) {
+        log(`Error cleaning up ${lib}`);
+      }
     }
   }
   log(`Finished running strategy for ${lib}`);
+};
+
+export const toValidUnixName = (lib: string): string => {
+  return lib.replace("/", "-");
 };
 
 export const execute = async (toRun: StrategyToRun): Promise<void> => {
