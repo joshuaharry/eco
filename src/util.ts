@@ -90,11 +90,11 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
   const stream = createWriteStream(outputFile, { flags: "a" });
   const ongoingCommand = spawn(command, { shell: true, cwd });
 
-  const runningCommand: Promise<StepResult> = new Promise((res, rej) => {
+  const runningCommand: Promise<StepResult> = new Promise((res) => {
     ongoingCommand.stdout.pipe(stream);
     ongoingCommand.stderr.pipe(stream);
-    ongoingCommand.on("error", (err) => {
-      rej(err);
+    ongoingCommand.on("error", () => {
+      // TODO: Handle these errors more correctly.
     });
     ongoingCommand.on("close", (code) => {
       res(code === 0 ? "STEP_SUCCESS" : "STEP_FAILURE");
@@ -102,8 +102,11 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
   });
 
   const cancel = () => {
-    stream.close();
-    treeKill(ongoingCommand.pid as number);
+    try {
+      treeKill(ongoingCommand.pid as number);
+    } catch (err) {
+      // TODO: Handle problems here more gracefully.
+    }
   };
 
   return runTimeout({ cancel, promise: runningCommand, timeout });
