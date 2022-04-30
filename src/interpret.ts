@@ -13,6 +13,7 @@ import type {
   StepResult,
   ExecuteRequest,
 } from "./language";
+import { runInPool } from "./concurrency";
 import path from "path";
 import os from "os";
 import Ajv, { AnySchema } from "ajv";
@@ -110,16 +111,20 @@ const executeSteps = async (req: ExecuteRequest) => {
 };
 
 export const execute = async (toRun: StrategyToRun): Promise<void> => {
-  for (const lib of toRun.packages) {
-    await executeSteps({
-      lib,
-      cleanup: toRun.strategy.action.cleanup,
-      steps: toRun.strategy.action.steps,
-      defaultTimeout: toRun.strategy.config.timeout,
-      cwd: path.join(process.cwd(), lib),
-      logFile: path.join(process.cwd(), lib),
-    });
-  }
+  const tasks = toRun.packages.map((lib) => {
+    const unstartedWork = (): Promise<void> => {
+      return executeSteps({
+        lib,
+        cleanup: toRun.strategy.action.cleanup,
+        steps: toRun.strategy.action.steps,
+        defaultTimeout: toRun.strategy.config.timeout,
+        cwd: path.join(SANDBOX_DIR, lib),
+        logFile: path.join(process.cwd(), lib),
+      });
+    };
+    return unstartedWork;
+  });
+  await runInPool(os.cpus().length - 1, tasks);
 };
 
 export const interpret = async (req: StrategyRequest) => {
