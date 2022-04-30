@@ -59,7 +59,7 @@
     "cleanup": [
       {
         "name": "Delete the package's source code",
-        "run": "exit 0"
+        "run": "rm -rf *"
       }
     ]
   }
