@@ -81,7 +81,9 @@ const executeStep = async (
 };
 
 const executeSteps = async (req: ExecuteRequest) => {
-  const { lib, steps, cleanup, logFile } = req;
+  const { lib, steps, cleanup, logFile, cwd } = req;
+  await rm(cwd, { force: true, recursive: true });
+  await mkdirp(cwd);
   log(`Executing strategy for ${lib}`);
   try {
     for (const [i, step] of steps.entries()) {
@@ -109,17 +111,13 @@ const executeSteps = async (req: ExecuteRequest) => {
 
 export const execute = async (toRun: StrategyToRun): Promise<void> => {
   for (const lib of toRun.packages) {
-    const logFile = path.join(process.cwd(), lib);
-    const cwd = path.join(SANDBOX_DIR, lib);
-    await rm(cwd, { force: true, recursive: true });
-    await mkdirp(cwd);
     await executeSteps({
       lib,
       cleanup: toRun.strategy.action.cleanup,
       steps: toRun.strategy.action.steps,
       defaultTimeout: toRun.strategy.config.timeout,
-      cwd,
-      logFile,
+      cwd: path.join(process.cwd(), lib),
+      logFile: path.join(process.cwd(), lib),
     });
   }
 };
