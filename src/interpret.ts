@@ -94,7 +94,10 @@ const executeSteps = async (req: ExecuteRequest) => {
           steps.length
         }\n-----------------\n`
       );
-      await executeStep(step, req);
+      const res = await executeStep(step, req);
+      if (res !== "STEP_SUCCESS") {
+        break;
+      }
     }
   } finally {
     for (const [i, step] of cleanup.entries()) {
