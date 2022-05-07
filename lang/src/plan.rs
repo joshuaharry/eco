@@ -32,8 +32,16 @@ pub struct Dependencies<'a> {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "uses")]
 pub enum Step<'a> {
-    Run { name: &'a str, run: &'a str },
-    Find { name: &'a str, ecosystem: &'a str },
+    Run {
+        name: &'a str,
+        run: &'a str,
+        timeout: Option<i64>,
+    },
+    Find {
+        name: &'a str,
+        ecosystem: &'a str,
+        timeout: Option<i64>,
+    },
 }
 
 // TODO: Consider transforming these from vectors into more sophisticated trees?
