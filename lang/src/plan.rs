@@ -68,3 +68,8 @@ pub struct Plan<'a> {
     // Instructions of a strategy to execute.
     pub strategy: Strategy<'a>,
 }
+
+/// Execute the contents of a plan in parallel.
+pub fn execute_plan(_plan: Plan) {
+
+}

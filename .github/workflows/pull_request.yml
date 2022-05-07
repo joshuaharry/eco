@@ -8,12 +8,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-python@v3
         with:
-          node-version: 18
+          python-version: '3.10'
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+      - name: Setup the Project
+        run: make setup
       - name: Build the Project
         run: cargo build --manifest-path=lang/Cargo.toml
       - name: Run Unit Tests
