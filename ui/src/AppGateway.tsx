@@ -1,5 +1,5 @@
 import React from "react";
-import StrategyEditor from "./StrategyEditor";
+import StrategyEditor from "./strategy-editor/StrategyEditor";
 
 interface AppGatewayProps {}
 

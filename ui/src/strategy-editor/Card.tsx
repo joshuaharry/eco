@@ -1,4 +1,5 @@
 import React from "react";
+import Box from "@mui/material/Box";
 import type { Identifier, XYCoord } from "dnd-core";
 import { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
@@ -8,19 +9,19 @@ const ItemTypes = {
 };
 
 const style = {
-  border: "1px dashed gray",
-  padding: "0.5rem 1rem",
+  boxShadow: "3px 3px 5px grey",
   marginBottom: ".5rem",
   backgroundColor: "white",
   cursor: "move",
 };
 
-export interface CardProps {
-  id: any;
-  text: string;
+export interface CardConfig {
+  id: string;
   index: number;
   moveCard: (dragIndex: number, hoverIndex: number) => void;
 }
+
+export type CardProps = CardConfig & { children: React.ReactNode };
 
 interface DragItem {
   index: number;
@@ -28,7 +29,8 @@ interface DragItem {
   type: string;
 }
 
-const Card: React.FC<CardProps> = ({ id, text, index, moveCard }) => {
+const Card: React.FC<CardProps> = (props) => {
+  const { id, index, moveCard, children } = props;
   const ref = useRef<HTMLDivElement>(null);
   const [{ handlerId }, drop] = useDrop<
     DragItem,
@@ -103,10 +105,11 @@ const Card: React.FC<CardProps> = ({ id, text, index, moveCard }) => {
 
   const opacity = isDragging ? 0 : 1;
   drag(drop(ref));
+
   return (
-    <div ref={ref} style={{ ...style, opacity }} data-handler-id={handlerId}>
-      {text}
-    </div>
+    <Box ref={ref} sx={{ ...style, opacity }} data-handler-id={handlerId}>
+      {children}
+    </Box>
   );
 };
 
