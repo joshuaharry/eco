@@ -45,18 +45,16 @@ impl<'a> Options {
 
     /// Marshal the options provided from the CLI into a Plan; then, run said
     /// plan with the executor callback.
-    pub fn execute(self, executor: fn(path: Plan)) -> Result<(), CliError> {
+    pub fn to_plan(self) -> Result<Plan, CliError> {
         let package_string = read_to_string(self.packages)
             .map_err(|err| CliError::MissingPackageList(err.to_string()))?;
-        let split = package_string.split("\n");
-        let packages: Vec<&str> = split.collect();
+        let packages: Vec<String> = package_string.split("\n").map(|x| x.to_string()).collect();
         let strategy_string = read_to_string(self.strategy)
             .map_err(|err| CliError::MissingStrategy(err.to_string()))?;
         let strategy: Strategy = serde_json::from_str(&strategy_string)
             .map_err(|err| CliError::InvalidStrategy(err.to_string()))?;
         let plan = Plan { packages, strategy };
-        executor(plan);
-        Ok(())
+        return Ok(plan);
     }
 }
 
@@ -66,7 +64,7 @@ mod tests {
     #[test]
     fn test_missing_files() {
         let options = Options::from_strings("/does-not-exist", "/also-does-not-exist");
-        let res = options.execute(|_| {});
+        let res = options.to_plan();
         let err = res.unwrap_err();
         match err {
             CliError::MissingPackageList(_) => (),

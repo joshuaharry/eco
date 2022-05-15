@@ -11,4 +11,3 @@ verify() {
 
 verify "node --version" "16"
 verify ""
-

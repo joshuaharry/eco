@@ -11,6 +11,11 @@ test: ## Run all tests.
 	@ cargo test --manifest-path=lang/Cargo.toml
 	@ npm test --prefix ui
 
+.PHONY: gentype
+gentype: ## Generate TypeScript types from our Rust code
+	@ cargo test --manifest-path=lang/Cargo.toml
+	@ cp -r ./lang/bindings/* ./ui/src/lang-types
+
 .PHONY: clean
 clean: ## Clean up the project.
 	@ cargo clean --manifest-path=lang/Cargo.toml
