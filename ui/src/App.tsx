@@ -4,17 +4,17 @@ import AppBar from "@mui/material/AppBar";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/system";
 import Providers from "./Providers";
+import TextField from "@mui/material/TextField";
 
 interface AppProps {}
 
 const App: React.FC<AppProps> = () => {
   const theme = useTheme();
-  console.log(theme);
   return (
     <Providers>
       <Box display="flex" flexDirection="column" width="100%">
         <AppBar position="static">
-          <Box display="flex">
+          <Box display="flex" alignItems="center">
             <Typography fontWeight="bold" fontSize="24pt" pl="16px">
               Eco
             </Typography>
@@ -26,6 +26,7 @@ const App: React.FC<AppProps> = () => {
                 borderRadius: theme.shape.borderRadius,
               }}
             >
+              <TextField />
             </Box>
           </Box>
         </AppBar>
