@@ -9,6 +9,7 @@ install: ## Install eco onto your machine.
 .PHONY: test
 test: ## Run all tests.
 	@ cargo test --manifest-path=lang/Cargo.toml
+	@ npm test --prefix ui
 
 .PHONY: clean
 clean: ## Clean up the project.
