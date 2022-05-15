@@ -9,10 +9,10 @@ install: ## Install eco onto your machine.
 .PHONY: test
 test: ## Run all tests.
 	@ cargo test --manifest-path=lang/Cargo.toml
-	@ npm test --prefix ui
+	@ CI=true npm test --prefix ui
 
 .PHONY: gentype
-gentype: ## Generate TypeScript types from our Rust code
+gentype: ## Generate TypeScript types from our Rust code.
 	@ cargo test --manifest-path=lang/Cargo.toml
 	@ cp -r ./lang/bindings/* ./ui/src/lang-types
 
