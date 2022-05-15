@@ -1,5 +1,7 @@
 import Providers from "./Providers";
-import { render, screen } from "./testUtils";
+import { screen } from "./testUtils";
+import { render } from '@testing-library/react';
+
 describe("Our Providers component", () => {
   test("Does not crash on rendering", () => {
     render(<Providers>Hello!</Providers>);
