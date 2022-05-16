@@ -8,6 +8,10 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
 import { useStrategy, useDispatch, STEP_LOCATION } from "./StrategyContext";
 
 export interface Item {
@@ -25,24 +29,57 @@ interface StepEditProps {
   kind: STEP_LOCATION;
 }
 
+const SelectOptions = ["Run", "Find"] as const;
+
 const StepForm: React.FC<StepEditProps & { expanded: boolean }> = (props) => {
-  const { expanded } = props;
+  const { expanded, kind, index } = props;
+  const strategy = useStrategy();
+  const info = strategy.action[kind === "ACTIONS" ? "steps" : "cleanup"][index];
   if (!expanded) return null;
-  return <TextField />;
+  return (
+    <Box display="flex">
+      <Box display="flex" alignItems="center" width="100%">
+        <TextField
+          label="Name"
+          defaultValue={info.name}
+          sx={{ width: "250px", marginRight: "16px" }}
+        />
+        <FormControl>
+          <InputLabel id={`using-label-${info.name}`}>Using</InputLabel>
+          <Select
+            labelId={`using-label-${info.name}`}
+            label="Using"
+            value={info.uses}
+            sx={{ width: "150px" }}
+          >
+            {SelectOptions.map((opt) => {
+              return (
+                <MenuItem key={opt} value={opt}>
+                  {opt}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </FormControl>
+      </Box>
+    </Box>
+  );
 };
 
 const StepEdit: React.FC<StepEditProps> = (props) => {
-  const { name } = props;
+  const { name, index } = props;
   const [expanded, setExpanded] = React.useState(false);
   return (
-    <Accordion sx={{ maxWidth: "600px" }} expanded={expanded}>
+    <Accordion expanded={expanded}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         onClick={() => setExpanded((prevExpanded) => !prevExpanded)}
         aria-controls="panel1a-content"
         id="panel1a-header"
       >
-        <Typography>{name}</Typography>
+        <Typography>
+          Step {index + 1}: {name}
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>
         <StepForm {...props} expanded={expanded} />
@@ -66,7 +103,7 @@ const EditActions = () => {
     action: { steps },
   } = useStrategy();
   return (
-    <Box width="800" display="flex" flexDirection="column">
+    <Box width="600px" display="flex" flexDirection="column">
       <Typography fontWeight="bold" fontSize="24pt" paddingBottom="16px">
         Edit Actions
       </Typography>
@@ -96,7 +133,7 @@ const EditCleanup = () => {
     action: { cleanup },
   } = useStrategy();
   return (
-    <Box width="1000" display="flex" flexDirection="column">
+    <Box width="600px" display="flex" flexDirection="column">
       <Typography
         fontWeight="bold"
         fontSize="24pt"
@@ -128,7 +165,7 @@ const StrategyEditor: React.FC<StrategyEditorProps> = () => {
         width="100%"
         padding="32px"
       >
-        <Box width="800" display="flex" flexDirection="column">
+        <Box width="600px" display="flex" flexDirection="column">
           <EditActions />
           <EditCleanup />
         </Box>
