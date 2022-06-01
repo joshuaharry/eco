@@ -23,3 +23,6 @@ instructions for you in such a way as to to make searching and understanding the
 results more straightforward. These instructions are called strategies and are
 currently configured via JSON files; you can place them into ~/.eco for your
 convenience.
+
+If you want to write your own strategies, the types of the JSON files are specified in
+`src/language.ts`; they are validated at runtime using `ajv`.
