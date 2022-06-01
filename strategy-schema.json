@@ -18,7 +18,11 @@
           "type": "number"
         }
       },
-      "required": ["name", "uses", "ecosystem"],
+      "required": [
+        "name",
+        "uses",
+        "ecosystem"
+      ],
       "additionalProperties": false
     },
     "StrategyStep": {
@@ -36,7 +40,10 @@
               "type": "number"
             }
           },
-          "required": ["name", "run"],
+          "required": [
+            "name",
+            "run"
+          ],
           "additionalProperties": false
         },
         {
@@ -60,7 +67,10 @@
           }
         }
       },
-      "required": ["steps", "cleanup"],
+      "required": [
+        "steps",
+        "cleanup"
+      ],
       "additionalProperties": false
     },
     "Strategy": {
@@ -102,7 +112,10 @@
           "$ref": "#/definitions/StrategyAction"
         }
       },
-      "required": ["config", "action"],
+      "required": [
+        "config",
+        "action"
+      ],
       "additionalProperties": false
     },
     "Dependencies": {
@@ -126,16 +139,23 @@
                     "type": "string"
                   }
                 },
-                "required": ["argument", "includes"],
+                "required": [
+                  "argument",
+                  "includes"
+                ],
                 "additionalProperties": false
               }
             },
-            "required": ["program"],
+            "required": [
+              "program"
+            ],
             "additionalProperties": false
           }
         }
       },
-      "required": ["required"],
+      "required": [
+        "required"
+      ],
       "additionalProperties": false
     },
     "ExecuteRequest": {

@@ -12,4 +12,5 @@ cp -r ./strategies ~/.eco
 cp ./strategy-schema.json ~/.eco/strategies
 printf "Compiling TypeScript...\n";
 tsc
+chmod +x dist/index.js
 printf "Done.\n";
