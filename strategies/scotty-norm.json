@@ -1,0 +1,66 @@
+{
+  "config": {
+    "name": "JavaScript",
+    "author": "Joshua Hoeflich",
+    "license": "MIT",
+    "timeout": 300000,
+    "ecoVersion": "0.0.0",
+    "dependencies": {
+      "required": [
+        {
+          "program": "node",
+          "checkOutput": {
+            "argument": "--version",
+            "includes": "16"
+          }
+        },
+        { "program": "git" },
+        {
+          "program": "scotty",
+          "checkOutput": {
+            "argument": "validate",
+            "includes": "Validation successful."
+          }
+        }
+      ]
+    }
+  },
+  "action": {
+    "steps": [
+      {
+        "name": "Download the Source Code",
+        "uses": "@eco/find",
+        "ecosystem": "npm"
+      },
+      {
+        "name": "Install the Dependencies",
+        "run": "npm install --legacy-peerdeps"
+      },
+      {
+        "name": "Run the Unit Tests",
+        "run": "npm test"
+      },
+      {
+        "name": "Run the Unit Tests in Identity Mode",
+        "run": "scotty identity-mode && npm test",
+        "timeout": 180000
+      },
+      {
+        "name": "Run the Unit Tests in Proxy Mode",
+        "run": "scotty proxy-mode && npm test",
+        "timeout": 180000
+      },
+      {
+        "name": "Run the Unit Tests With Full Contract Checking",
+        "run": "scotty full-mode && npm test",
+        "timeout": 180000
+      }
+    ],
+    "cleanup": [
+      {
+        "name": "Delete the package's source code",
+        "run": "true"
+      }
+    ]
+  }
+}
