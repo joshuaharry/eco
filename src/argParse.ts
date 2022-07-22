@@ -1,8 +1,11 @@
 import type { StrategyRequest } from "./interpret";
 
 export const usageAndExit = (exitCode: number): never => {
-  console.log(`Usage: eco [-h][--help][-s | --stratgegy <path>]
+  console.log(`Usage: eco [-h][--help]
+                       [-s | --stratgegy <path>]
                        [-f | --file-list <path>]
+		       [-n | --no-cleanup]
+		       [<path> ...]
 
 eco - A tool for understanding your software's ecosystem.
 
@@ -20,24 +23,26 @@ https://github.com/joshuaharry/eco
 };
 
 export const parseArgv = (argv: string[]): StrategyRequest => {
-  const req: StrategyRequest = { strategyPath: "", filesPath: "" };
+  const req: StrategyRequest = { strategyPath: "", filesPath: "", filesList: [], cleanup: true };
   const length = argv.length;
   for (let i = 0; i < length; ++i) {
     const arg = argv[i];
     const next = argv[i + 1];
     if (arg === "-h" || arg === "--help") {
       return usageAndExit(0);
-    }
-    if ((arg === "-s" || arg === "--strategy") && next) {
+    } else if ((arg === "-s" || arg === "--strategy") && next) {
       req.strategyPath = next;
       ++i;
-    }
-    if ((arg === "-f" || arg === "--file-list") && next) {
+    } else if ((arg === "-f" || arg === "--file-list") && next) {
       req.filesPath = next;
       ++i;
+    } else if ((arg === "-n" || arg === "--no-cleanup") && next) {
+      req.cleanup = false;
+    } else {
+      req.filesList.push(<string>arg);
     }
   }
-  if (req.strategyPath && req.filesPath) {
+  if (req.strategyPath && (req.filesPath || req.filesList)) {
     return req;
   }
   console.error("Error: could not parse arguments.\n");

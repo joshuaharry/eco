@@ -35,6 +35,10 @@ export interface StrategyRequest {
   strategyPath: string;
   // Where is the list of packages to analyze located?
   filesPath: string;
+  // a list of packages
+  filesList: string[];
+  // cleanup the package sources
+  cleanup: boolean;
 }
 
 export interface StrategyToRun {
@@ -42,6 +46,8 @@ export interface StrategyToRun {
   packages: string[];
   // What is the strategy that we could execute?
   strategy: Strategy;
+  // cleanup stage
+  cleanup: boolean;
 }
 
 const resolveRequest = (req: StrategyRequest): StrategyToRun => {
@@ -56,8 +62,10 @@ const resolveRequest = (req: StrategyRequest): StrategyToRun => {
     });
     process.exit(1);
   }
-  const packages = readlines(path.normalize(req.filesPath));
-  return { strategy, packages };
+  const packages = req.filesPath 
+     ? readlines(path.normalize(req.filesPath))
+     : req.filesList;
+  return { strategy, packages, cleanup: req.cleanup };
 };
 
 const executeStep = async (
@@ -128,7 +136,7 @@ export const execute = async (toRun: StrategyToRun): Promise<void> => {
     const unstartedWork = (): Promise<void> => {
       return executeSteps({
         lib,
-        cleanup: toRun.strategy.action.cleanup,
+        cleanup: toRun.cleanup ? toRun.strategy.action.cleanup : [],
         steps: toRun.strategy.action.steps,
         defaultTimeout: toRun.strategy.config.timeout,
         cwd: path.join(SANDBOX_DIR, lib),

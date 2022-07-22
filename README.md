@@ -12,8 +12,11 @@ sudo npm install -g .
 That will place the `eco` CLI onto your `$PATH` for future work.
 
 ## Usage
-Usage: eco [-h][--help][-s | --stratgegy <path>]
-                       [-f | --file-list <path>]
+Usage: eco [-h | --help]
+           [-n | --no-cleanup]
+           [-s | --stratgegy <path>]
+           [-f | --file-list <path>]
+	   <path> ...
 
 eco - A tool for understanding your software's ecosystem.
 
@@ -35,8 +38,8 @@ eco js-packages -s strategies/scotty.json -f js-packages
 ```
 
 ```
-eco js-packages -s strategies/scotty-norm.json -f js-packages
+eco js-packages -n -s strategies/scotty.json -f js-packages
 ```
 
-The check in `$HOME/.eco/JavaScript` and `$HOME/.eco/sansbox` for
+The check in `$HOME/.eco/JavaScript` and `$HOME/.eco/sandbox` for
 logfiles and sources.
