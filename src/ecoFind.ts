@@ -18,7 +18,7 @@ const ecosystemFetchers: Record<
     if (typeof repository !== "string") {
       await appendFile(
         req.logFile,
-        `FATAL ERROR: Cannot find the git repository of ${req.lib} in the npm registry.`
+        `*** ECO-FATAL-ERROR: Cannot find the git repository of ${req.lib} in the npm registry.`
       );
       return "STEP_FAILURE";
     }
@@ -34,7 +34,7 @@ export const gitUrl = async (
   if (!fetcher) {
     await appendFile(
       req.logFile,
-      `FATAL ERROR: Cannot find packages in the ${find.ecosystem} yet.`
+      `*** ECO-FATAL-ERROR: Cannot find packages in the ${find.ecosystem} yet.`
     );
     return "STEP_FAILURE";
   }
@@ -44,7 +44,7 @@ export const gitUrl = async (
   } catch (err) {
     await appendFile(
       req.logFile,
-      `FATAL ERROR: Could not find ${req.lib} in the ${find.ecosystem} ecosystem`
+      `*** ECO-FATAL-ERROR: Could not find ${req.lib} in the ${find.ecosystem} ecosystem`
     );
     return "STEP_FAILURE";
   }

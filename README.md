@@ -41,5 +41,9 @@ eco js-packages -s strategies/scotty.json -f js-packages
 eco js-packages -n -s strategies/scotty.json -f js-packages
 ```
 
+```
+eco js-packages -n -s strategies/scotty.json abs
+```
+
 The check in `$HOME/.eco/JavaScript` and `$HOME/.eco/sandbox` for
 logfiles and sources.
