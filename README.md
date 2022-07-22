@@ -34,15 +34,15 @@ using `ajv`.
 ## Example
 
 ```
-eco js-packages -s strategies/scotty.json -f js-packages
+eco -s strategies/scotty.json -f js-packages
 ```
 
 ```
-eco js-packages -n -s strategies/scotty.json -f js-packages
+eco -n -s strategies/scotty.json -f js-packages
 ```
 
 ```
-eco js-packages -n -s strategies/scotty.json abs
+eco -n -s strategies/scotty.json abs
 ```
 
 The check in `$HOME/.eco/JavaScript` and `$HOME/.eco/sandbox` for
