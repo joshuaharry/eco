@@ -6,6 +6,7 @@ import { readFileSync, createWriteStream } from "fs-extra";
 import { setTimeout } from "timers/promises";
 import treeKill from "tree-kill";
 import type { OperationTimeout, StepResult } from "./language";
+import { Writable } from "stream";
 
 export const run = promisify(exec);
 
@@ -49,6 +50,7 @@ interface Command {
   outputFile: string;
   command: string;
   timeout: number;
+  output?: string;
 }
 
 interface TimeoutOperation<T = unknown, U = unknown> {
@@ -84,10 +86,24 @@ export const log = (message: string) => {
   console.log(`${new Date().toISOString()}: ${message}`);
 };
 
+function bufferWriteStream(buf: string[]): any {
+   var writable = new Writable({
+      write: function(chunk, encoding, next) {
+         buf.push(chunk.toString(typeof encoding === "string" ? "ascii" : "ascii"));
+    	 next();
+      }
+   });
+   return writable;
+}
+
+export let commandResult: string | false = false;
+
 export const runCommand = async (cmd: Command): Promise<StepResult> => {
   const { outputFile, command, timeout, cwd } = cmd;
+  const buffer: string[] = [];
+  commandResult = false;
 
-  const stream = createWriteStream(outputFile, { flags: "a" });
+  const stream = (outputFile === "-" ? bufferWriteStream(buffer) : createWriteStream(outputFile, { flags: "a" }));
   const ongoingCommand = spawn(command, { shell: true, cwd });
 
   const runningCommand: Promise<StepResult> = new Promise((res) => {
@@ -97,7 +113,14 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
       // TODO: Handle these errors more correctly.
     });
     ongoingCommand.on("close", (code) => {
-      res(code === 0 ? "STEP_SUCCESS" : "STEP_FAILURE");
+      if (code === 0) {
+         if (outputFile === "-") {
+	   cmd.output = buffer.join();
+         }
+         res("STEP_SUCCESS");
+      } else {
+	 res("STEP_FAILURE");
+      }
     });
   });
 

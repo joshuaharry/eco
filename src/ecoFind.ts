@@ -1,7 +1,26 @@
+/*=====================================================================*/
+/*    serrano/prgm/project/jscontract/eco/src/ecoFind.ts               */
+/*    -------------------------------------------------------------    */
+/*    Author      :  Joshua Hoeflich                                   */
+/*    Creation    :  Tue Jul 26 09:15:08 2022                          */
+/*    Last change :                                                    */
+/*    Copyright   :  2022 Hoeflich, Findler, Serrano                   */
+/*    -------------------------------------------------------------    */
+/*    find and clone a package git repository.                         */
+/*=====================================================================*/
+
+/*---------------------------------------------------------------------*/
+/*    The module                                                       */
+/*---------------------------------------------------------------------*/
 import type { EcoFind, ExecuteRequest, StepResult } from "./language";
 import { appendFile, runCommand } from "./util";
 import axios from "axios";
 
+export { gitUrl, ecoFind };
+
+/*---------------------------------------------------------------------*/
+/*    ecosystemFetchers ...                                            */
+/*---------------------------------------------------------------------*/
 const ecosystemFetchers: Record<
   string,
   (req: ExecuteRequest, find: EcoFind) => Promise<string>
@@ -14,7 +33,22 @@ const ecosystemFetchers: Record<
     const { data } = await axios.get(search, {
       timeout: find.timeout || req.defaultTimeout,
     });
-    const { repository } = data.objects[0].package.links;
+    let { repository } = data.objects[0].package.links;
+    if (typeof repository !== "string") {
+      // try using npm view
+      const cmd = {
+         timeout: find.timeout || req.defaultTimeout,
+	 command: `npm view ${req.lib} repository.url`,
+	 cwd: process.cwd(),
+	 outputFile: "-",
+	 output: ""
+      };
+      if (await runCommand(cmd) === "STEP_SUCCESS") {
+         repository = cmd.output.trim();
+	 console.log("repo=[" + repository + "]");
+      }
+    }
+      
     if (typeof repository !== "string") {
       await appendFile(
         req.logFile,
@@ -26,10 +60,11 @@ const ecosystemFetchers: Record<
   },
 };
 
-export const gitUrl = async (
-  req: ExecuteRequest,
-  find: EcoFind
-): Promise<StepResult | string> => {
+
+/*---------------------------------------------------------------------*/
+/*    gitUrl ...                                                       */
+/*---------------------------------------------------------------------*/
+async function gitUrl(req: ExecuteRequest, find: EcoFind): Promise<StepResult | string> {
   const fetcher = ecosystemFetchers[find.ecosystem];
   if (!fetcher) {
     await appendFile(
@@ -50,10 +85,10 @@ export const gitUrl = async (
   }
 };
 
-const ecoFind = async (
-  req: ExecuteRequest,
-  find: EcoFind
-): Promise<StepResult> => {
+/*---------------------------------------------------------------------*/
+/*    ecoFind ...                                                      */
+/*---------------------------------------------------------------------*/
+async function ecoFind(req: ExecuteRequest, find: EcoFind): Promise<StepResult> {
   const url = await gitUrl(req, find);
   if (url === "STEP_FAILURE") {
     return url;

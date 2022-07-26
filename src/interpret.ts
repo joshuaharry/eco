@@ -18,7 +18,7 @@ import path from "path";
 import os from "os";
 import Ajv, { AnySchema } from "ajv";
 import { validate } from "./dependencies";
-import ecoFind from "./ecoFind";
+import { ecoFind } from "./ecoFind";
 
 const ECO_DIR = path.join(os.homedir(), ".eco");
 
