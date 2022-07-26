@@ -32,7 +32,7 @@ If you want to write your own strategies, the types of the JSON files
 are specified in `src/language.ts`; they are validated at runtime
 using `ajv`.
 
-## Example
+## Examples
 
 ```
 eco -s strategies/scotty.json -f js-packages
@@ -48,3 +48,17 @@ eco -n -s strategies/scotty.json abs
 
 The check in `$HOME/.eco/JavaScript` and `$HOME/.eco/sandbox` for
 logfiles and sources.
+
+
+## DefinitelyTyped
+
+The file `lists/dt-all` contains the list of all the DefinitelyTyped
+packages. The utility `split.sh` splits it so that `eco` can be used
+to process batches of DefinitelyTyped packages instead of processing
+the whole repository as a whole. Example:
+
+```
+eco -n -s strategies/scotty.json -f lists/dt-all.1000 -d DT-ALL.1000
+```
+
+

@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  Joshua Hoeflich                                   */
 /*    Creation    :  Tue Jul 26 09:15:08 2022                          */
-/*    Last change :                                                    */
+/*    Last change :  Tue Jul 26 11:57:28 2022 (serrano)                */
 /*    Copyright   :  2022 Hoeflich, Findler, Serrano                   */
 /*    -------------------------------------------------------------    */
 /*    find and clone a package git repository.                         */
@@ -45,7 +45,6 @@ const ecosystemFetchers: Record<
       };
       if (await runCommand(cmd) === "STEP_SUCCESS") {
          repository = cmd.output.trim();
-	 console.log("repo=[" + repository + "]");
       }
     }
       
