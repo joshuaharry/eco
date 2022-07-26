@@ -61,4 +61,14 @@ the whole repository as a whole. Example:
 eco -n -s strategies/scotty.json -f lists/dt-all.1000 -d DT-ALL.1000
 ```
 
+To detect unsupported features:
 
+```
+grep -rl unsupportedCT ~/.eco/sandbox | grep -v contract-base.js
+```
+
+To inspect unsupported features:
+
+```
+emacs ~/.eco/sandbox/copy/{index.js,index.d.ts}
+```
