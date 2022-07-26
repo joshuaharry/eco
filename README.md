@@ -15,6 +15,7 @@ That will place the `eco` CLI onto your `$PATH` for future work.
 Usage: eco [-h | --help]
            [-n | --no-cleanup]
            [-s | --stratgegy <path>]
+           [-d | --log-dir <path>]
            [-f | --file-list <path>]
 	   <path> ...
 

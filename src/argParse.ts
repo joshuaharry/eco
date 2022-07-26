@@ -5,6 +5,7 @@ export const usageAndExit = (exitCode: number): never => {
                        [-s | --stratgegy <path>]
                        [-f | --file-list <path>]
 		       [-n | --no-cleanup]
+		       [-d | --log-dir <path>]
 		       [<path> ...]
 
 eco - A tool for understanding your software's ecosystem.
@@ -23,7 +24,7 @@ https://github.com/joshuaharry/eco
 };
 
 export const parseArgv = (argv: string[]): StrategyRequest => {
-  const req: StrategyRequest = { strategyPath: "", filesPath: "", filesList: [], cleanup: true };
+  const req: StrategyRequest = { strategyPath: "", filesPath: "", filesList: [], cleanup: true, logDir: new Date().toISOString() };
   const length = argv.length;
   for (let i = 0; i < length; ++i) {
     const arg = argv[i];
@@ -35,6 +36,9 @@ export const parseArgv = (argv: string[]): StrategyRequest => {
       ++i;
     } else if ((arg === "-f" || arg === "--file-list") && next) {
       req.filesPath = next;
+      ++i;
+    } else if ((arg === "-d" || arg === "--log-dir") && next) {
+      req.logDir = next;
       ++i;
     } else if ((arg === "-n" || arg === "--no-cleanup") && next) {
       req.cleanup = false;

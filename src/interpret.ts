@@ -39,6 +39,8 @@ export interface StrategyRequest {
   filesList: string[];
   // cleanup the package sources
   cleanup: boolean;
+  // the name of the directory where to store logs
+  logDir: string;
 }
 
 export interface StrategyToRun {
@@ -152,8 +154,7 @@ export const interpret = async (req: StrategyRequest) => {
   const toRun = resolveRequest(req);
   const { strategy } = toRun;
   await validate(strategy.config.dependencies);
-  const startTime = new Date().toISOString();
-  const runPath = path.join(ECO_DIR, strategy.config.name, startTime);
+  const runPath = path.join(ECO_DIR, strategy.config.name, req.logDir);
   await mkdirp(runPath);
   process.chdir(runPath);
   await execute(toRun);
