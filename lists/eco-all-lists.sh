@@ -4,7 +4,7 @@
 #    index, if provided should be a multple of 100
 all=dt-all
 
-if [ !-f dt-all ]; then
+if [ ! -f dt-all ]; then
   echo "*** ERROR: cannot find dt-all, should run in the list directory."
   exit 1;
 fi
