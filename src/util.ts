@@ -103,6 +103,7 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
   const buffer: string[] = [];
   commandResult = false;
 
+  log(`$ ${command} (${cwd})`);
   const stream = (outputFile === "-" ? bufferWriteStream(buffer) : createWriteStream(outputFile, { flags: "a" }));
   const ongoingCommand = spawn(command, { shell: true, cwd });
 
@@ -111,6 +112,7 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
     ongoingCommand.stderr.pipe(stream);
     ongoingCommand.on("error", () => {
       // TODO: Handle these errors more correctly.
+      log(`!!! error ${cwd}`);
     });
     ongoingCommand.on("close", (code) => {
       if (code === 0) {
