@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  Joshua Hoeflich                                   */
 /*    Creation    :  Tue Jul 26 09:15:08 2022                          */
-/*    Last change :  Tue Jul 26 11:57:28 2022 (serrano)                */
+/*    Last change :  Wed Jul 27 08:40:21 2022 (serrano)                */
 /*    Copyright   :  2022 Hoeflich, Findler, Serrano                   */
 /*    -------------------------------------------------------------    */
 /*    find and clone a package git repository.                         */
@@ -51,7 +51,7 @@ const ecosystemFetchers: Record<
     if (typeof repository !== "string") {
       await appendFile(
         req.logFile,
-        `*** ECO-FATAL-ERROR: Cannot find the git repository of ${req.lib} in the npm registry.`
+        `*** ECO-FATAL-ERROR:no-git: Cannot find the git repository of ${req.lib} in the npm registry.`
       );
       return "STEP_FAILURE";
     }
@@ -68,7 +68,7 @@ async function gitUrl(req: ExecuteRequest, find: EcoFind): Promise<StepResult | 
   if (!fetcher) {
     await appendFile(
       req.logFile,
-      `*** ECO-FATAL-ERROR: Cannot find packages in the ${find.ecosystem} yet.`
+      `*** ECO-FATAL-ERROR:no-pkg: Cannot find packages in the ${find.ecosystem} yet.`
     );
     return "STEP_FAILURE";
   }
@@ -78,7 +78,7 @@ async function gitUrl(req: ExecuteRequest, find: EcoFind): Promise<StepResult | 
   } catch (err) {
     await appendFile(
       req.logFile,
-      `*** ECO-FATAL-ERROR: Could not find ${req.lib} in the ${find.ecosystem} ecosystem`
+      `*** ECO-FATAL-ERROR:no-lib: Could not find ${req.lib} in the ${find.ecosystem} ecosystem`
     );
     return "STEP_FAILURE";
   }
