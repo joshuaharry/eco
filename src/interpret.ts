@@ -100,9 +100,8 @@ const executeSteps = async (req: ExecuteRequest) => {
     for (const [i, step] of steps.entries()) {
       await appendFile(
         logFile,
-        `${new Date().toISOString()}: ${step.name} - ${i + 1}/${
-          steps.length
-        }\n-----------------\n`
+        `### ECO:STEP ${i + 1}/${steps.length}: ${new Date().toISOString()}
+        }\n-------------------------------------------------------\n`
       );
       const res = await executeStep(step, req);
       if (res !== "STEP_SUCCESS") {
@@ -110,19 +109,18 @@ const executeSteps = async (req: ExecuteRequest) => {
       }
     }
   } catch (err) {
-    log(`toplevel error triggered by ${lib}`);
+    log(`*** ECO-ERROR:step:toplevel error triggered by ${lib}`);
   } finally {
     for (const [i, step] of cleanup.entries()) {
       try {
         await appendFile(
           logFile,
-          `${new Date().toISOString()}: ${step.name} - ${i + 1}/${
-            cleanup.length
-          }\n-----------------\n`
+          `### ECO:CLEANUP ${i + 1}/${cleanup.length}: ${new Date().toISOString()}
+        }\n-------------------------------------------------------\n`
         );
         await executeStep(step, req);
       } catch (err) {
-        log(`Error cleaning up ${lib}`);
+        log(`*** ECO-ERROR:cleanup:Error cleaning up ${lib}`);
       }
     }
   }

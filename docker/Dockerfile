@@ -25,7 +25,11 @@ RUN chown -R scotty /home/scotty
 
 USER scotty
 ENV HOME /home/scotty
+ENV PATH $PATH:/home/scotty/local/bin
 
+run mkdir -p /home/scotty/local/bin
+run echo 'prefix = /home/scotty/local' >> /home/scotty/.npmrc
+    
 RUN git clone https://github.com/manuel-serrano/scotty.git
 RUN cd /home/scotty/scotty \
     && npm install \
