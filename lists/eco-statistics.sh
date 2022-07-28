@@ -4,7 +4,7 @@
 #*    -------------------------------------------------------------    */
 #*    Author      :  Manuel Serrano                                    */
 #*    Creation    :  Thu Jul 28 08:45:39 2022                          */
-#*    Last change :  Thu Jul 28 15:06:35 2022 (serrano)                */
+#*    Last change :  Thu Jul 28 17:58:22 2022 (serrano)                */
 #*    Copyright   :  2022 Manuel Serrano                               */
 #*    -------------------------------------------------------------    */
 #*    Generate ECO statistics.                                         */
@@ -38,33 +38,33 @@ echo "  \"date\": \"`date`\","
 pkgnum=`find $LOGDIR -type f -print | wc -l`
 echo "  \"numPackages\": $pkgnum,"
 
-# packages without git repo
-nogit=`grep -l "ECO-FATAL-ERROR:no-git" $LOGDIR/DT-ALL.*/* | wc -l`
-echo "  \"codeMissing\": $nogit,"
+# packages that reach step 1 (git repo found)
+step1=`grep -l "ECO:STEP 1/" $LOGDIR/DT-ALL.*/* | wc -l`
+echo "  \"step1\": $step1,"
 
-# packages that reach step 2 (git repo found)
-step1=`grep -l "ECO:STEP 2/" $LOGDIR/DT-ALL.*/* | wc -l`
-echo "  \"step1Pass\": $step1,"
+# packages that reach step 2 (install the dependencies)
+step2=`grep -l "ECO:STEP 2/" $LOGDIR/DT-ALL.*/* | wc -l`
+echo "  \"step2\": $step2,"
 
-# packages that reach step 3 (Dependencies installed)
-step2=`grep -l "ECO:STEP 3/" $LOGDIR/DT-ALL.*/* | wc -l`
-echo "  \"step2Pass\": $step2,"
+# packages that reach step 3 (run the unit tests)
+step3=`grep -l "ECO:STEP 3/" $LOGDIR/DT-ALL.*/* | wc -l`
+echo "  \"step3\": $step3,"
 
-# packages that reach step 4 (unit tests pass)
-step3=`grep -l "ECO:STEP 4/" $LOGDIR/DT-ALL.*/* | wc -l`
-echo "  \"step3Pass\": $step3,"
+# packages that reach step 4 (run the unit tests in identity mode)
+step4=`grep -l "ECO:STEP 4/" $LOGDIR/DT-ALL.*/* | wc -l`
+echo "  \"step4\": $step4,"
 
-# packages that reach step 5 (unit tests + identity pass)
-step4=`grep -l "ECO:STEP 5/" $LOGDIR/DT-ALL.*/* | wc -l`
-echo "  \"step4Pass\": $step4,"
+# packages that reach step 5 (run the unit tests in proxy mode)
+step5=`grep -l "ECO:STEP 5/" $LOGDIR/DT-ALL.*/* | wc -l`
+echo "  \"step5\": $step5,"
 
-# packages that reach step 6 (unit tests + neutral contract pass)
-step5=`grep -l "ECO:STEP 6/" $LOGDIR/DT-ALL.*/* | wc -l`
-echo "  \"step5Pass\": $step5,"
+# packages that reach step 6 (run the unit tests with full contrac checking)
+step6=`grep -l "ECO:STEP 6/" $LOGDIR/DT-ALL.*/* | wc -l`
+echo "  \"step6\": $step6,"
 
 # packages that reach step 7 (test complete)
-step6=`grep -l "ECO:STEP 7/" $LOGDIR/DT-ALL.*/* | wc -l`
-echo "  \"step6Pass\": $step6",
+step7=`grep -l "ECO:STEP 7/" $LOGDIR/DT-ALL.*/* | wc -l`
+echo "  \"step6Pass\": $step7",
 
 # failing imports
 if [ "$SANDBOXDIR " != " " ]; then
