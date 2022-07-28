@@ -54,6 +54,10 @@
         "name": "Run the Unit Tests With Full Contract Checking",
         "run": "scotty full-mode && npm test",
         "timeout": 180000
+      },
+      {
+        "name": "Test complete",
+        "run": "true"
       }
     ],
     "cleanup": [
