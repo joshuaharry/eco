@@ -4,7 +4,7 @@
 #*    -------------------------------------------------------------    */
 #*    Author      :  Manuel Serrano                                    */
 #*    Creation    :  Thu Jul 28 08:45:39 2022                          */
-#*    Last change :  Thu Jul 28 17:58:22 2022 (serrano)                */
+#*    Last change :  Thu Jul 28 18:06:19 2022 (serrano)                */
 #*    Copyright   :  2022 Manuel Serrano                               */
 #*    -------------------------------------------------------------    */
 #*    Generate ECO statistics.                                         */
@@ -64,7 +64,7 @@ echo "  \"step6\": $step6,"
 
 # packages that reach step 7 (test complete)
 step7=`grep -l "ECO:STEP 7/" $LOGDIR/DT-ALL.*/* | wc -l`
-echo "  \"step6Pass\": $step7",
+echo "  \"step7\": $step7",
 
 # failing imports
 if [ "$SANDBOXDIR " != " " ]; then
