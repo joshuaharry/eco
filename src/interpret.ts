@@ -100,8 +100,7 @@ const executeSteps = async (req: ExecuteRequest) => {
     for (const [i, step] of steps.entries()) {
       await appendFile(
         logFile,
-        `### ECO:STEP ${i + 1}/${steps.length}: ${new Date().toISOString()}
-        }\n-------------------------------------------------------\n`
+        `\n### ECO:STEP ${i + 1}/${steps.length}: ${new Date().toISOString()}\n`
       );
       const res = await executeStep(step, req);
       if (res !== "STEP_SUCCESS") {
@@ -115,8 +114,7 @@ const executeSteps = async (req: ExecuteRequest) => {
       try {
         await appendFile(
           logFile,
-          `### ECO:CLEANUP ${i + 1}/${cleanup.length}: ${new Date().toISOString()}
-        }\n-------------------------------------------------------\n`
+          `\n### ECO:CLEANUP ${i + 1}/${cleanup.length}: ${new Date().toISOString()}\n`
         );
         await executeStep(step, req);
       } catch (err) {

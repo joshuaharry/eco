@@ -17,6 +17,29 @@ Run a shell
 docker run -t -i --entrypoint=/bin/bash scotty
 ```
 
+
+Run eco
+-------
+
+To generate the eco log files (takes about 5 to 10 hours depending on
+the network speed):
+
+```shell
+(docker) cd /home/scotty/eco/lists && ./eco-all-lists.sh
+```
+
+The logs are stored in `/home/scotty/.eco/JavaScript`
+
+To collect all statistics:
+
+```shell
+(docker) cd /home/scotty/eco/lists && ./eco-statistics.sh
+```
+
+
+Managing images
+---------------
+
 Exporting the Docker image
 
 ```shell
