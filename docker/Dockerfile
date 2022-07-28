@@ -2,6 +2,7 @@ FROM debian:bookworm
 
 RUN apt update && apt dist-upgrade -y && apt install -y \
     bash \
+    procps \
     make \
     wget \
     git \

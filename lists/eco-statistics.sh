@@ -4,7 +4,7 @@
 #*    -------------------------------------------------------------    */
 #*    Author      :  Manuel Serrano                                    */
 #*    Creation    :  Thu Jul 28 08:45:39 2022                          */
-#*    Last change :  Thu Jul 28 10:34:02 2022 (serrano)                */
+#*    Last change :  Thu Jul 28 11:17:37 2022 (serrano)                */
 #*    Copyright   :  2022 Manuel Serrano                               */
 #*    -------------------------------------------------------------    */
 #*    Generate ECO statistics.                                         */
@@ -54,6 +54,6 @@ echo "  \"step5Pass\": $step5,"
 
 # packages that reach step 7 (test complete)
 step6=`grep -l "ECO:STEP 7/" $LOGDIR/DT-ALL.*/* | wc -l`
-echo "  \"step6Pass\": $step6,"
+echo "  \"step6Pass\": $step6"
 
 echo "}"
