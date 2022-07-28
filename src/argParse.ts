@@ -26,7 +26,7 @@ https://github.com/joshuaharry/eco
 export const parseArgv = (argv: string[]): StrategyRequest => {
   const req: StrategyRequest = { strategyPath: "", filesPath: "", filesList: [], cleanup: true, logDir: new Date().toISOString() };
   const length = argv.length;
-  for (let i = 0; i < length; ++i) {
+  for (let i = 2; i < length; ++i) {
     const arg = argv[i];
     const next = argv[i + 1];
     if (arg === "-h" || arg === "--help") {
