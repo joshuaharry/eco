@@ -35,7 +35,7 @@ while expr $i "<" $num; do
   # dependencies to limit disk space
   if [ "$cleanup " = "-n "]; then
     for f in `cat dt-all.$i`; do
-      (cd $HOME/.eco/sandbox/$p; rm -rf node_modules)
+      (cd $HOME/.eco/sandbox/$f; rm -rf node_modules)
     done
   fi
   
