@@ -129,6 +129,13 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
   const cancel = () => {
     try {
       treeKill(ongoingCommand.pid as number);
+
+      // MS 29jul2022, for closing subprocess pipe
+      ongoingCommand.stdout.destroy();
+      ongoingCommand.stderr.destroy();
+      ongoingCommand.stdin.destroy();
+      ongoingCommand.unref();
+      
       // !!! MS 29jul2022, awful hack because I don't know to do it better
       // some packages, e.g. cls-hooked have bad npm test commands.
       // For this one, the test directive is:
@@ -137,8 +144,10 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
       // happens to never ends. This prevents eco to end. 
       if (command.indexOf("npm test") >= 0) {
          log('!!! forcing "npm test" abort (' + cwd + ')...');
-	 log("running (pid=`ps aux | grep node | grep sandbox/" + basename(cwd) + "| awk '{print $2}'`; kill -9 $pid)")
-         exec("(pid=`ps aux | grep node | grep sandbox/" + basename(cwd) + " | awk '{print $2}'`; kill -9 $pid)");
+	 log("running (pid=`ps aux | grep node | grep sandbox/" + basename(cwd) + "| awk '{print $2}'`; [ \"$pir \" != \" \" ] && kill -9 $pid)")
+         exec("(pid=`ps aux | grep node | grep sandbox/" + basename(cwd) + " | awk '{print $2}'`; [ \"$pir \" != \" \" ] && kill -9 $pid)");
+	 log("running (pid=`ps aux | grep flow | grep sandbox/" + basename(cwd) + "| awk '{print $2}'`; [ \"$pir \" != \" \" ] && kill -9 $pid)")
+         exec("(pid=`ps aux | grep flow | grep sandbox/" + basename(cwd) + " | awk '{print $2}'`; [ \"$pir \" != \" \" ] && kill -9 $pid)");
       }
     } catch (err: any) {
       log("!!! treeKill error...");
