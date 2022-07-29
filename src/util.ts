@@ -7,6 +7,7 @@ import { setTimeout } from "timers/promises";
 import treeKill from "tree-kill";
 import type { OperationTimeout, StepResult } from "./language";
 import { Writable } from "stream";
+import { basename } from "path";
 
 export const run = promisify(exec);
 
@@ -102,7 +103,6 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
   const { outputFile, command, timeout, cwd } = cmd;
   const buffer: string[] = [];
   commandResult = false;
-
   log(`$ ${command} (${cwd})`);
   const stream = (outputFile === "-" ? bufferWriteStream(buffer) : createWriteStream(outputFile, { flags: "a" }));
   const ongoingCommand = spawn(command, { shell: true, cwd });
@@ -129,7 +129,20 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
   const cancel = () => {
     try {
       treeKill(ongoingCommand.pid as number);
-    } catch (err) {
+      // !!! MS 29jul2022, awful hack because I don't know to do it better
+      // some packages, e.g. cls-hooked have bad npm test commands.
+      // For this one, the test directive is:
+      //   mocha test/*.js & tap test/tap/*.tap.js
+      // because of this "&" a shell process is spawned in background and
+      // happens to never ends. This prevents eco to end. 
+      if (command.indexOf("npm test") >= 0) {
+         log('!!! forcing "npm test" abort...');
+	 log("running (pid=`ps aux | grep node | grep sandbox/" + basename(cwd) + "| awk '{print $2}'`; kill -9 $pid)")
+         exec("(pid=`ps aux | grep node | grep sandbox/" + basename(cwd) + " | awk '{print $2}'`; kill -9 $pid)");
+      }
+    } catch (err: any) {
+      log("!!! treeKill error...");
+      log(err.toString());
       // TODO: Handle problems here more gracefully.
     }
   };

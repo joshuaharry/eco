@@ -27,6 +27,18 @@ num=`wc -l $all | awk '{print $1}'`
 while expr $i "<" $num; do
   echo "====== eco $cleanup -s strategies/scotty.json -f dt-all.$i -d DT-ALL.$i"
   eco $cleanup -s ../strategies/scotty.json -f dt-all.$i -d DT-ALL.$i
+
+  # cleanup npm cache that grows too big
+  npm cache clean --force
+
+  # if no cleanup asked for each package individually, remove package
+  # dependencies to limit disk space
+  if [ "$cleanup " = "-n "]; then
+    for f in `cat dt-all.$i`; do
+      (cd $HOME/.eco/sandbox/$p; rm -rf node_modules)
+    done
+  fi
+  
   i=`expr $i "+" 100`
 done  
 
