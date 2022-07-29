@@ -136,7 +136,7 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
       // because of this "&" a shell process is spawned in background and
       // happens to never ends. This prevents eco to end. 
       if (command.indexOf("npm test") >= 0) {
-         log('!!! forcing "npm test" abort...');
+         log('!!! forcing "npm test" abort (' + cwd + ')...');
 	 log("running (pid=`ps aux | grep node | grep sandbox/" + basename(cwd) + "| awk '{print $2}'`; kill -9 $pid)")
          exec("(pid=`ps aux | grep node | grep sandbox/" + basename(cwd) + " | awk '{print $2}'`; kill -9 $pid)");
       }
