@@ -33,7 +33,7 @@ while expr $i "<" $num; do
 
   # if no cleanup asked for each package individually, remove package
   # dependencies to limit disk space
-  if [ "$cleanup " = "-n "]; then
+  if [ "$cleanup " = "-n " ]; then
     for f in `cat dt-all.$i`; do
       (cd $HOME/.eco/sandbox/$f; rm -rf node_modules)
     done
