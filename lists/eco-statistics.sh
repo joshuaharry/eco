@@ -4,7 +4,7 @@
 #*    -------------------------------------------------------------    */
 #*    Author      :  Manuel Serrano                                    */
 #*    Creation    :  Thu Jul 28 08:45:39 2022                          */
-#*    Last change :  Thu Jul 28 18:06:19 2022 (serrano)                */
+#*    Last change :  Sat Jul 30 18:09:04 2022 (serrano)                */
 #*    Copyright   :  2022 Manuel Serrano                               */
 #*    -------------------------------------------------------------    */
 #*    Generate ECO statistics.                                         */
@@ -68,12 +68,12 @@ echo "  \"step7\": $step7",
 
 # failing imports
 if [ "$SANDBOXDIR " != " " ]; then
-  failingimports=`find $SANDBOXDIR -name '*.d.ts' -print | xargs grep import | awk -F/ '{print $2}' | sort | uniq | wc -l`
-  testsnotests=`find $SANDBOXDIR -name 'package.json' -print | xargs grep "Error: no test specified" | sort | uniq | wc -l`
+  failingimports=`(cd $SANDBOXDIR; find . -name '*.d.ts' -print | xargs grep import | awk -F/ '{print $2}' | sort | uniq | wc -l)`
+  testsnotests=`(cd $SANDBOXDIR; find . -name 'package.json' -print | xargs grep "Error: no test specified" 2> /dev/null | sort | uniq | wc -l)`
 else
-  # default sandbox values
-  failingimports=347
-  testsnotests=293
+  # values collected after executing eco-all-list.sh on 30jul2022
+  failingimports=1790
+  testsnotests=1723
 fi
 
 echo "  \"failingImports\": $failingimports,"
