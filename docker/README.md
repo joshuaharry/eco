@@ -17,6 +17,7 @@ Run a shell
 docker run -t -i --entrypoint=/bin/bash scotty
 ```
 
+Use `docker exec -it <container> /bin/bash` to connect a second shell into the container.
 
 Run eco
 -------
