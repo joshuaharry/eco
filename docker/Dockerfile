@@ -16,12 +16,14 @@ RUN apt update && apt dist-upgrade -y && apt install -y \
     nodejs \
     npm \
     node-typescript \
+    yarnpkg \
     && apt clean
 
 WORKDIR /home/scotty
 
-RUN useradd --no-log-init -d /home/scotty -s /bin/bash scotty
+RUN (cd /usr/bin; ln -s yarnpkg yarn)
 
+RUN useradd --no-log-init -d /home/scotty -s /bin/bash scotty
 RUN chown -R scotty /home/scotty
 
 USER scotty
