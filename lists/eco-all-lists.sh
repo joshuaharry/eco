@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # run eco on the split lists
 #    usage: eco-all-lists.sh [-n] [index]
 #    index, if provided should be a multple of 100
@@ -24,6 +24,26 @@ fi
 size=100
 num=`wc -l $all | awk '{print $1}'`
 
+# install the new npm script-shell in order to intercept linters
+restorenpm() {
+  if [ "$script-shell " != " " ]; then
+    npm set script-shell $scriptshell
+  else
+    npm config delete script-shell
+  fi
+}
+
+trap restorenpm EXIT
+scriptshell=`npm get script-shell.sh`
+npm set script-shell "$PWD/eco-shell.sh"
+echo "#!/bin/sh" > $PWD/eco-shell.sh
+echo "PATH=$PWD/linters:\$PATH" >> $PWD/eco-shell.sh
+echo "/bin/sh \$*" >> $PWD/eco-shell.sh
+
+chmod a+rx $PWD/eco-shell.sh
+
+exit 0
+
 while expr $i "<" $num; do
   echo "====== eco $cleanup -s strategies/scotty.json -f dt-all.$i -d DT-ALL.$i"
   eco $cleanup -s ../strategies/scotty.json -f dt-all.$i -d DT-ALL.$i
@@ -42,3 +62,4 @@ while expr $i "<" $num; do
   i=`expr $i "+" 100`
 done  
 
+npm set script-shell "$PWD/eco-shell"
