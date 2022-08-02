@@ -46,7 +46,8 @@ const ecosystemFetchers: Record<
       if (await runCommand(cmd) === "STEP_SUCCESS") {
          repository = cmd.output
                          .trim()
-                         .replace(/(remote-)?git[+]https/, "https");
+                         .replace(/(remote-)?git[+]https/, "https")
+                         .replace(/git[+]ssh:[/][/]git@github[.]com/, "https://github.com");
 	 if (repository === "") {
 	    repository = null;
 	 }
@@ -97,6 +98,11 @@ async function ecoFind(req: ExecuteRequest, find: EcoFind): Promise<StepResult> 
   if (url === "STEP_FAILURE") {
     return url;
   }
+  await appendFile(
+    req.logFile,
+    `git clone ${url} ${req.cwd}\n`
+  );
+
   const res = await runCommand({
     timeout: find.timeout || req.defaultTimeout,
     command: `git clone ${url} ${req.cwd}`,
