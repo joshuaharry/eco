@@ -109,6 +109,7 @@ const executeSteps = async (req: ExecuteRequest) => {
     }
   } catch (err:any) {
     log(`*** ECO-ERROR:step:toplevel error triggered by ${lib}\n${err.toString()}`);
+    await appendFile(logFile, err.toString());
   } finally {
     for (const [i, step] of cleanup.entries()) {
       try {
