@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  Joshua Hoeflich                                   */
 /*    Creation    :  Tue Jul 26 09:15:08 2022                          */
-/*    Last change :  Sat Jul 30 06:47:56 2022 (serrano)                */
+/*    Last change :  Fri Aug  5 19:34:53 2022 (serrano)                */
 /*    Copyright   :  2022 Hoeflich, Findler, Serrano                   */
 /*    -------------------------------------------------------------    */
 /*    find and clone a package git repository.                         */
@@ -47,7 +47,9 @@ const ecosystemFetchers: Record<
          repository = cmd.output
                          .trim()
                          .replace(/(remote-)?git[+]https/, "https")
-                         .replace(/git[+]ssh:[/][/]git@github[.]com/, "https://github.com");
+                         .replace(/git[+]ssh:[/][/]git@github[.]com/, "https://github.com")
+                         .replace(/git:[/][/]github.com/, "https://github.com")
+
 	 if (repository === "") {
 	    repository = null;
 	 }
