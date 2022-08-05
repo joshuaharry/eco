@@ -39,7 +39,7 @@
       {
         "name": "Run the Unit Tests",
         "run": "npm test",
-        "timeout": 30000
+        "timeout": 120000
       },
       {
         "name": "Run the Unit Tests in Identity Mode",
