@@ -58,12 +58,17 @@ interface TimeoutOperation<T = unknown, U = unknown> {
   promise: Promise<T>;
   cancel: () => U;
   timeout: number;
+  cmd: Command;
 }
+
+export const log = (message: string) => {
+  console.log(`${new Date().toISOString()}: ${message}`);
+};
 
 const runTimeout = async <T>(
   op: TimeoutOperation<T>
 ): Promise<T | OperationTimeout> => {
-  const { promise, cancel, timeout } = op;
+  const { promise, cancel, timeout, cmd } = op;
   const timeoutCanceller = new AbortController();
   const timeoutPromise = setTimeout(timeout, "OPERATION_TIMEOUT", {
     signal: timeoutCanceller.signal,
@@ -76,15 +81,12 @@ const runTimeout = async <T>(
     | T
     | OperationTimeout;
   if (res === "OPERATION_TIMEOUT") {
+    log(`!!! timeout ${cmd.command} ${cmd.cwd}`);
     cancel();
   } else {
     timeoutCanceller.abort();
   }
   return res;
-};
-
-export const log = (message: string) => {
-  console.log(`${new Date().toISOString()}: ${message}`);
 };
 
 function bufferWriteStream(buf: string[]): any {
@@ -156,5 +158,5 @@ export const runCommand = async (cmd: Command): Promise<StepResult> => {
     }
   };
 
-  return runTimeout({ cancel, promise: runningCommand, timeout });
+  return runTimeout({ cancel, promise: runningCommand, timeout, cmd });
 };
