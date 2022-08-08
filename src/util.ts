@@ -81,7 +81,7 @@ const runTimeout = async <T>(
     | T
     | OperationTimeout;
   if (res === "OPERATION_TIMEOUT") {
-    log(`!!! timeout ${cmd.command} ${cmd.cwd}`);
+    log(`### ECO:TIMEOUT ${cmd.command} ${cmd.cwd}`);
     cancel();
   } else {
     timeoutCanceller.abort();
