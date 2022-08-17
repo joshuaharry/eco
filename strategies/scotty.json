@@ -11,7 +11,7 @@
           "program": "node",
           "checkOutput": {
             "argument": "--version",
-            "includes": "16"
+            "includes": "1[6-8]"
           }
         },
         { "program": "git" },

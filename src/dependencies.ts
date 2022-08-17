@@ -31,7 +31,7 @@ const validateDependency = async (dep: SystemDependency): Promise<void> => {
   const command = `${dep.program} ${argument}`;
   try {
     const { stdout, stderr } = await run(command);
-    if (!stdout.includes(includes)) {
+    if (!stdout.match(new RegExp(includes))) {
       console.error(`Fatal error: We expected the output of ${command} to include ${includes}
 
 STDERR:
