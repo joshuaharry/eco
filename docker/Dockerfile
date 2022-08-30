@@ -1,6 +1,6 @@
 FROM debian:bookworm
 
-RUN apt update && apt dist-upgrade -y && apt install -y \
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
     bash \
     procps \
     make \
@@ -18,7 +18,8 @@ RUN apt update && apt dist-upgrade -y && apt install -y \
     npm \
     node-typescript \
     yarnpkg \
-    && apt clean
+    yarn \
+    && apt-get clean
 
 WORKDIR /home/scotty
 

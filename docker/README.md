@@ -7,14 +7,14 @@ To build the docker image
 The `docker` command must be executed from the eco/docker directory.
 
 ```shell
-docker build -f Dockerfile -t scotty .
+docker build -f Dockerfile -t eco .
 ```
 
 Run a shell
 ----------
 
 ```shell
-docker run -t -i --entrypoint=/bin/bash scotty
+docker run -t -i --entrypoint=/bin/bash eco
 ```
 
 Use `docker exec -it <container> /bin/bash` to connect a second shell into the container.
@@ -44,13 +44,13 @@ Managing images
 Exporting the Docker image
 
 ```shell
-docker image save -o docker-image-scotty.tgz scotty
+docker image save -o docker-image-eco.tgz eco
 ```
 
 Importing the Docker image
 
 ```shell
-docker load < docker-image-scotty.tgz
+docker load < docker-image-eco.tgz
 ```
 
 
@@ -64,7 +64,7 @@ It might be needed to first remove an existing Hop image with:
 $ docker images
 ```
 
-to get the scotty docker <image-id>, and then:
+to get the eco docker <image-id>, and then:
 
 ```shell
 $ docker rmi <image-id>
@@ -81,4 +81,32 @@ or
 
 ```shell
 docker container prune
+```
+
+Misc
+====
+
+```
+docker image inspect --format="-" eco 
+```
+
+To check is an image exists. Returns 0 is it does. Returns non-zero
+otherwise.
+
+To create a never ending named container:
+
+```
+docker run  --name MYNAME eco -c "tail -f /dev/null"
+```
+
+To run a command inside that named container:
+
+```
+docker exec MYNAME /bin/ls
+```
+
+To terminate that container:
+
+```
+docker rm -f MYNAME
 ```
