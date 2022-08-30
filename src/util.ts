@@ -5,9 +5,43 @@ export { appendFile } from "fs/promises";
 import { readFileSync, createWriteStream } from "fs-extra";
 import { setTimeout } from "timers/promises";
 import treeKill from "tree-kill";
-import type { OperationTimeout, StepResult } from "./language";
+import type { OperationTimeout, StepResult, DockerConfig } from "./language";
 import { Writable } from "stream";
 import { basename } from "path";
+import { dockerWrapCommand } from "./docker";
+
+interface SystemResult {
+   code: number;
+   stdout: string;
+   stderr: string;
+};
+ 
+/*---------------------------------------------------------------------*/
+/*    system ...                                                       */
+/*    -------------------------------------------------------------    */
+/*    Execute a command (inside a shell) and returns the process       */
+/*    exit value. If "echo" is true, echos the output on the           */
+/*    console.                                                         */
+/*---------------------------------------------------------------------*/
+export async function system(cmd: string, echo: boolean): Promise<SystemResult> {
+   return new Promise((res, rej) => {
+        const proc = spawn("sh", ["-c", cmd]);
+	let stdout = "";
+	let stderr = "";
+	
+        proc.stdout.on('data', (data) => {
+          const buf = data.toString();
+	  stdout += buf;
+	  if (echo) process.stdout.write(buf);
+	});
+        proc.stderr.on('data', (data) => {
+          const buf = data.toString();
+	  stderr += buf;
+	  if (echo) process.stderr.write(buf);
+	});
+	proc.on('close', code => { return { code, stdout, stderr } });
+   });
+}
 
 export const run = promisify(exec);
 
@@ -101,13 +135,19 @@ function bufferWriteStream(buf: string[]): any {
 
 export let commandResult: string | false = false;
 
-export const runCommand = async (cmd: Command): Promise<StepResult> => {
+/*---------------------------------------------------------------------*/
+/*    runCommand ...                                                   */
+/*---------------------------------------------------------------------*/
+export async function runCommand(cmd: Command, docker: DockerConfig | undefined): Promise<StepResult> {
   const { outputFile, command, timeout, cwd } = cmd;
+  const dockerCommand = dockerWrapCommand(command, docker);
   const buffer: string[] = [];
   commandResult = false;
-  log(`$ ${command} (${cwd})`);
+
+  log(`$ ${dockerCommand} (${cwd})`);
+  
   const stream = (outputFile === "-" ? bufferWriteStream(buffer) : createWriteStream(outputFile, { flags: "a" }));
-  const ongoingCommand = spawn(command, { shell: true, cwd });
+  const ongoingCommand = spawn(dockerCommand, { shell: true, cwd });
 
   const runningCommand: Promise<StepResult> = new Promise((res) => {
     ongoingCommand.stdout.pipe(stream);

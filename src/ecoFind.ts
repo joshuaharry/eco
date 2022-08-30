@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  Joshua Hoeflich                                   */
 /*    Creation    :  Tue Jul 26 09:15:08 2022                          */
-/*    Last change :  Fri Aug  5 19:34:53 2022 (serrano)                */
+/*    Last change :  Tue Aug 30 21:03:37 2022 (serrano)                */
 /*    Copyright   :  2022 Hoeflich, Findler, Serrano                   */
 /*    -------------------------------------------------------------    */
 /*    find and clone a package git repository.                         */
@@ -12,7 +12,7 @@
 /*---------------------------------------------------------------------*/
 /*    The module                                                       */
 /*---------------------------------------------------------------------*/
-import type { EcoFind, ExecuteRequest, StepResult } from "./language";
+import type { EcoFind, ExecuteRequest, StepResult, DockerConfig } from "./language";
 import { appendFile, runCommand } from "./util";
 import axios from "axios";
 
@@ -23,12 +23,12 @@ export { gitUrl, ecoFind };
 /*---------------------------------------------------------------------*/
 const ecosystemFetchers: Record<
   string,
-  (req: ExecuteRequest, find: EcoFind) => Promise<string>
+  (req: ExecuteRequest, find: EcoFind, docker: DockerConfig | undefined) => Promise<string>
 > = {
   async git(req) {
     return req.lib;
   },
-  async npm(req, find) {
+  async npm(req, find, docker) {
     const search = `http://registry.npmjs.com/-/v1/search?text=${req.lib}&size=1`;
     const { data } = await axios.get(search, {
       timeout: find.timeout || req.defaultTimeout,
@@ -43,7 +43,7 @@ const ecosystemFetchers: Record<
 	 outputFile: "-",
 	 output: ""
       };
-      if (await runCommand(cmd) === "STEP_SUCCESS") {
+      if (await runCommand(cmd, docker) === "STEP_SUCCESS") {
          repository = cmd.output
                          .trim()
                          .replace(/(remote-)?git[+]https/, "https")
@@ -71,7 +71,7 @@ const ecosystemFetchers: Record<
 /*---------------------------------------------------------------------*/
 /*    gitUrl ...                                                       */
 /*---------------------------------------------------------------------*/
-async function gitUrl(req: ExecuteRequest, find: EcoFind): Promise<StepResult | string> {
+async function gitUrl(req: ExecuteRequest, find: EcoFind, docker: DockerConfig | undefined): Promise<StepResult | string> {
   const fetcher = ecosystemFetchers[find.ecosystem];
   if (!fetcher) {
     await appendFile(
@@ -81,7 +81,7 @@ async function gitUrl(req: ExecuteRequest, find: EcoFind): Promise<StepResult | 
     return "STEP_FAILURE";
   }
   try {
-    const libPath = fetcher(req, find);
+    const libPath = fetcher(req, find, docker);
     return libPath;
   } catch (err) {
     await appendFile(
@@ -95,8 +95,8 @@ async function gitUrl(req: ExecuteRequest, find: EcoFind): Promise<StepResult | 
 /*---------------------------------------------------------------------*/
 /*    ecoFind ...                                                      */
 /*---------------------------------------------------------------------*/
-async function ecoFind(req: ExecuteRequest, find: EcoFind): Promise<StepResult> {
-  const url = await gitUrl(req, find);
+async function ecoFind(req: ExecuteRequest, find: EcoFind, docker: DockerConfig | undefined): Promise<StepResult> {
+  const url = await gitUrl(req, find, docker);
   if (url === "STEP_FAILURE") {
     return url;
   }
@@ -110,7 +110,7 @@ async function ecoFind(req: ExecuteRequest, find: EcoFind): Promise<StepResult> 
     command: `git clone ${url} ${req.cwd}`,
     cwd: process.cwd(),
     outputFile: req.logFile,
-  });
+  }, docker);
   return res;
 };
 

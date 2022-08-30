@@ -24,7 +24,7 @@ describe("Our run method", () => {
       timeout: 0,
       outputFile: "test.log",
       cwd: process.cwd(),
-    });
+    }, undefined);
     expect(res).toEqual("OPERATION_TIMEOUT");
   });
   test("Works when the command is shorter than the command", async () => {
@@ -33,7 +33,7 @@ describe("Our run method", () => {
       timeout: 3000,
       outputFile: "test.log",
       cwd: process.cwd(),
-    });
+    }, undefined);
     expect(res).toEqual("STEP_SUCCESS");
   });
   test("Works when the command fails", async () => {
@@ -42,7 +42,7 @@ describe("Our run method", () => {
       timeout: 3000,
       outputFile: "test.log",
       cwd: process.cwd(),
-    });
+    }, undefined);
     expect(res).toEqual("STEP_FAILURE");
   });
 });

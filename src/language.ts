@@ -1,6 +1,13 @@
 import type { Dependencies } from "./dependencies";
 
-interface StrategyConfig {
+export interface DockerConfig {
+  // the name of the Dockerfile used to create the image
+  dockerFile: string;
+  // the name of the docker image to create
+  imageName: string;
+}
+
+export interface StrategyConfig {
   // What version are we on of the tool?
   ecoVersion: string;
   // What is the name of this strategy?
@@ -13,6 +20,8 @@ interface StrategyConfig {
   timeout: number;
   // What are the system dependencies of the strategy?
   dependencies: Dependencies;
+  // an optional Docker configuration
+  docker?: DockerConfig;
 }
 
 export type EcoFind = {

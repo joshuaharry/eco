@@ -20,7 +20,8 @@ describe("Getting GIT urls", () => {
         ecosystem: "git",
         name: "Find the npm package.",
         uses: "@eco/find",
-      }
+       },
+       undefined
     );
     expect(res).toEqual("identity");
   });
@@ -38,7 +39,8 @@ describe("Getting GIT urls", () => {
         ecosystem: "npm",
         name: "Find the npm package.",
         uses: "@eco/find",
-      }
+      }, 
+      undefined
     );
     expect(res).toEqual("https://github.com/facebook/react");
   });
@@ -56,7 +58,8 @@ describe("Getting GIT urls", () => {
         ecosystem: "not-a-real-ecosystem",
         name: "Find the npm package.",
         uses: "@eco/find",
-      }
+      },
+      undefined
     );
     expect(res).toEqual("STEP_FAILURE");
   });

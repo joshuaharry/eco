@@ -1,6 +1,97 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
+    "DockerConfig": {
+      "type": "object",
+      "properties": {
+        "dockerFile": {
+          "type": "string"
+        },
+        "imageName": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dockerFile",
+        "imageName"
+      ],
+      "additionalProperties": false
+    },
+    "StrategyConfig": {
+      "type": "object",
+      "properties": {
+        "ecoVersion": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": "number"
+        },
+        "dependencies": {
+          "$ref": "#/definitions/Dependencies"
+        },
+        "docker": {
+          "$ref": "#/definitions/DockerConfig"
+        }
+      },
+      "required": [
+        "ecoVersion",
+        "name",
+        "author",
+        "license",
+        "timeout",
+        "dependencies"
+      ],
+      "additionalProperties": false
+    },
+    "Dependencies": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "program": {
+                "type": "string"
+              },
+              "checkOutput": {
+                "type": "object",
+                "properties": {
+                  "argument": {
+                    "type": "string"
+                  },
+                  "includes": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "argument",
+                  "includes"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "program"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "required"
+      ],
+      "additionalProperties": false
+    },
     "EcoFind": {
       "type": "object",
       "properties": {
@@ -77,36 +168,7 @@
       "type": "object",
       "properties": {
         "config": {
-          "type": "object",
-          "properties": {
-            "ecoVersion": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            },
-            "author": {
-              "type": "string"
-            },
-            "license": {
-              "type": "string"
-            },
-            "timeout": {
-              "type": "number"
-            },
-            "dependencies": {
-              "$ref": "#/definitions/Dependencies"
-            }
-          },
-          "required": [
-            "ecoVersion",
-            "name",
-            "author",
-            "license",
-            "timeout",
-            "dependencies"
-          ],
-          "additionalProperties": false
+          "$ref": "#/definitions/StrategyConfig"
         },
         "action": {
           "$ref": "#/definitions/StrategyAction"
@@ -115,46 +177,6 @@
       "required": [
         "config",
         "action"
-      ],
-      "additionalProperties": false
-    },
-    "Dependencies": {
-      "type": "object",
-      "properties": {
-        "required": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "program": {
-                "type": "string"
-              },
-              "checkOutput": {
-                "type": "object",
-                "properties": {
-                  "argument": {
-                    "type": "string"
-                  },
-                  "includes": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "argument",
-                  "includes"
-                ],
-                "additionalProperties": false
-              }
-            },
-            "required": [
-              "program"
-            ],
-            "additionalProperties": false
-          }
-        }
-      },
-      "required": [
-        "required"
       ],
       "additionalProperties": false
     },
