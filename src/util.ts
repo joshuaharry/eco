@@ -5,10 +5,10 @@ export { appendFile } from "fs/promises";
 import { readFileSync, createWriteStream } from "fs-extra";
 import { setTimeout } from "timers/promises";
 import treeKill from "tree-kill";
-import type { OperationTimeout, StepResult, DockerConfig } from "./language";
+import type { OperationTimeout, StepResult } from "./language";
 import { Writable } from "stream";
 import { basename } from "path";
-import { dockerWrapCommand } from "./docker";
+import type { Shell } from "./shell";
 
 interface SystemResult {
    code: number;
@@ -39,7 +39,8 @@ export async function system(cmd: string, echo: boolean): Promise<SystemResult> 
 	  stderr += buf;
 	  if (echo) process.stderr.write(buf);
 	});
-	proc.on('close', code => { return { code, stdout, stderr } });
+	proc.on('close', (code: number) => 
+          res({ code, stdout: stdout.trim(), stderr: stderr.trim() }));
    });
 }
 
@@ -138,25 +139,25 @@ export let commandResult: string | false = false;
 /*---------------------------------------------------------------------*/
 /*    runCommand ...                                                   */
 /*---------------------------------------------------------------------*/
-export async function runCommand(cmd: Command, docker: DockerConfig | undefined): Promise<StepResult> {
+export async function runCommand(cmd: Command, shell: Shell): Promise<StepResult> {
   const { outputFile, command, timeout, cwd } = cmd;
-  const dockerCommand = dockerWrapCommand(command, docker);
   const buffer: string[] = [];
   commandResult = false;
 
-  log(`$ ${dockerCommand} (${cwd})`);
+  log(`$ ${command} (${cwd})`);
   
   const stream = (outputFile === "-" ? bufferWriteStream(buffer) : createWriteStream(outputFile, { flags: "a" }));
-  const ongoingCommand = spawn(dockerCommand, { shell: true, cwd });
+  const ongoingCommand = shell.spawn(command, { shell: true, cwd });
 
   const runningCommand: Promise<StepResult> = new Promise((res) => {
     ongoingCommand.stdout.pipe(stream);
     ongoingCommand.stderr.pipe(stream);
-    ongoingCommand.on("error", () => {
+    ongoingCommand.on("error", (e) => {
       // TODO: Handle these errors more correctly.
-      log(`!!! error ${cwd}`);
+      log(`[runCommand] error running "${command}" in "${cwd}"`);
+      log(`[runCommand] ${e.toString()}`);
     });
-    ongoingCommand.on("close", (code) => {
+    ongoingCommand.on("close", (code:number) => {
       if (code === 0) {
          if (outputFile === "-") {
 	   cmd.output = buffer.join();

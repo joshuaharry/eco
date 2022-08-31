@@ -1,20 +1,18 @@
 import {
   readJson,
   readlines,
-  mkdirp,
   runCommand,
   log,
   appendFile,
-  rm
 } from "./util";
 import type {
   Strategy,
-  DockerConfig,
   StrategyStep,
   StepResult,
   ExecuteRequest,
 } from "./language";
-import { dockerInit } from "./docker";
+import { HostShell, DockerShell } from "./shell";
+import type { Shell } from "./shell";
 
 import { runInPool } from "./concurrency";
 import path from "path";
@@ -23,13 +21,12 @@ import Ajv, { AnySchema } from "ajv";
 import { validate } from "./dependencies";
 import { ecoFind } from "./ecoFind";
 
-const ECO_DIR = path.join(os.homedir(), ".eco");
-
-const SANDBOX_DIR = path.join(os.homedir(), ".eco", "sandbox");
+const ECO_DIR = path.join("~", ".eco");
+const SANDBOX_DIR = path.join("~", ".eco", "sandbox");
 
 const ajv = new Ajv();
 const schema = readJson(
-  path.join(ECO_DIR, "strategies", "strategy-schema.json")
+   path.join(ECO_DIR.replace(/~/, os.homedir()), "strategies", "strategy-schema.json")
 );
 const validateSchema = ajv.compile(schema as AnySchema);
 
@@ -73,32 +70,37 @@ const resolveRequest = (req: StrategyRequest): StrategyToRun => {
   return { strategy, packages, cleanup: req.cleanup };
 };
 
-const executeStep = async (
-  step: StrategyStep,
-  req: ExecuteRequest,
-  docker: DockerConfig | undefined
-): Promise<StepResult> => {
+/*---------------------------------------------------------------------*/
+/*    executeStep ...                                                  */
+/*---------------------------------------------------------------------*/
+async function executeStep(step: StrategyStep, req: ExecuteRequest, shell: Shell): Promise<StepResult> {
   const { cwd, defaultTimeout, logFile } = req;
   if ("run" in step) {
     const res = await runCommand({
       timeout: step.timeout || defaultTimeout,
       command: step.run,
-      cwd,
-      outputFile: logFile,
-    }, docker);
+      cwd: cwd,
+      outputFile: logFile
+    }, shell);
     return res;
   }
   switch (step.uses) {
     case "@eco/find": {
-      return ecoFind(req, step, docker);
+      return ecoFind(req, step, shell);
     }
   }
-};
+}
 
-const executeSteps = async (req: ExecuteRequest, docker: DockerConfig | undefined) => {
+/*---------------------------------------------------------------------*/
+/*    executeSteps ...                                                 */
+/*---------------------------------------------------------------------*/
+async function executeSteps(req: ExecuteRequest, shell: Shell, cleansh: boolean) {
   const { lib, steps, cleanup, logFile, cwd } = req;
-  await rm(cwd, { force: true, recursive: true });
-  await mkdirp(cwd);
+  const sh = await shell.fork(lib);
+  
+  await sh.rm(cwd, { force: true, recursive: true });
+  await sh.mkdirp(cwd);
+  
   log(`Executing strategy for ${lib}`);
   try {
     for (const [i, step] of steps.entries()) {
@@ -106,7 +108,7 @@ const executeSteps = async (req: ExecuteRequest, docker: DockerConfig | undefine
         logFile,
         `\n### ECO:STEP ${i + 1}/${steps.length}: ${new Date().toISOString()} (${step.name})\n`
       );
-      const res = await executeStep(step, req, docker);
+      const res = await executeStep(step, req, sh);
       if (res !== "STEP_SUCCESS") {
         break;
       }
@@ -121,50 +123,39 @@ const executeSteps = async (req: ExecuteRequest, docker: DockerConfig | undefine
           logFile,
           `\n### ECO:CLEANUP ${i + 1}/${cleanup.length}: ${new Date().toISOString()}\n`
         );
-        await executeStep(step, req, docker);
+        await executeStep(step, req, sh);
       } catch (err) {
         log(`*** ECO-ERROR:cleanup:Error cleaning up ${lib}`);
       }
     }
   }
+  
+  if (cleansh) {
+    sh.cleanup();
+  } 
+  
   log(`Finished running strategy for ${lib}`);
-};
-
-const dockerExecuteSteps = async (req: ExecuteRequest, toRun: StrategyToRun) => {
-  const docker = toRun.strategy.config.docker;
-  if (docker) {
-    console.log(">>> docker");
-  }
-  await executeSteps(req, docker);
-  if (docker) {
-    console.log("<<< docker");
-    if (toRun.cleanup) {
-       // remove the docker container we have just created 
-    }
-  }
 }
-
-export const toValidUnixName = (lib: string): string => {
-  return lib.replace("/", "-");
-};
 
 /*---------------------------------------------------------------------*/
 /*    execute ...                                                      */
 /*---------------------------------------------------------------------*/
-export async function execute(toRun: StrategyToRun): Promise<void> {
-  const tasks = toRun.packages.map((lib) => {
+export async function execute(toRun: StrategyToRun, shell: Shell): Promise<void> {
+  function executeLib(lib: string) {
     const unstartedWork = (): Promise<void> => {
-      return dockerExecuteSteps({
+      return executeSteps({
         lib,
         cleanup: toRun.cleanup ? toRun.strategy.action.cleanup : [],
         steps: toRun.strategy.action.steps,
         defaultTimeout: toRun.strategy.config.timeout,
         cwd: path.join(SANDBOX_DIR, lib),
         logFile: path.join(process.cwd(), lib),
-      }, toRun);
+      }, shell, toRun.cleanup);
     };
     return unstartedWork;
-  });
+  }
+  
+  const tasks = toRun.packages.map(executeLib);
   await runInPool(os.cpus().length - 1, tasks);
 }
 
@@ -174,10 +165,25 @@ export async function execute(toRun: StrategyToRun): Promise<void> {
 export async function interpret(req: StrategyRequest) {
   const toRun = resolveRequest(req);
   const { strategy } = toRun;
-  await dockerInit(strategy.config.docker);
+  const docker = strategy.config.docker 
+  const execshell = docker
+    ? new DockerShell(docker.home, docker.dockerFile, docker.imageName)
+    : new HostShell();
+  const logshell = new HostShell();
+
+  await execshell.init();
+  await logshell.init();
+  
+  const logsh = await logshell.fork("log");
   await validate(strategy.config.dependencies);
+  
   const runPath = path.join(ECO_DIR, strategy.config.name, req.logDir);
-  await mkdirp(runPath);
-  process.chdir(runPath);
-  await execute(toRun);
+  await logsh.mkdirp(runPath);
+  await logsh.chdir(runPath);
+  
+  if (req.cleanup) {
+    await logsh.cleanup();
+  }
+  
+  await execute(toRun, execshell);
 }

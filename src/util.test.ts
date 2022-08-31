@@ -1,5 +1,8 @@
 import { run, programExists, readlines, runCommand } from "./util";
 import path from "path";
+import { HostShell } from "./shell";
+
+const shell = new HostShell();
 
 describe("Our run method", () => {
   test("Works on a simple echo command", async () => {
@@ -24,7 +27,7 @@ describe("Our run method", () => {
       timeout: 0,
       outputFile: "test.log",
       cwd: process.cwd(),
-    }, undefined);
+    }, shell);
     expect(res).toEqual("OPERATION_TIMEOUT");
   });
   test("Works when the command is shorter than the command", async () => {
@@ -33,7 +36,7 @@ describe("Our run method", () => {
       timeout: 3000,
       outputFile: "test.log",
       cwd: process.cwd(),
-    }, undefined);
+    }, shell);
     expect(res).toEqual("STEP_SUCCESS");
   });
   test("Works when the command fails", async () => {
@@ -42,7 +45,7 @@ describe("Our run method", () => {
       timeout: 3000,
       outputFile: "test.log",
       cwd: process.cwd(),
-    }, undefined);
+    }, shell);
     expect(res).toEqual("STEP_FAILURE");
   });
 });

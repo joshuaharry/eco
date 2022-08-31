@@ -2,6 +2,7 @@ FROM debian:bookworm
 
 RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
     bash \
+    dash \
     procps \
     make \
     wget \
@@ -47,6 +48,11 @@ RUN cd /home/scotty/eco \
     && npm install -g .
 RUN cd /home/scotty/eco/lists \
     && ./split.sh
+
+run mkdir -p /home/scotty/local/shell
+run echo '#!/bin/bash' > /home/scotty/local/shell/cdbash
+run echo '(cd $1; /bin/bash -c $2)' >> /home/scotty/local/shell/cdbash
+run chmod a+rx /home/scotty/local/shell/cdbash
 
 STOPSIGNAL SIGINT
 

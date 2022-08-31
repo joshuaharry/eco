@@ -5,6 +5,8 @@ export interface DockerConfig {
   dockerFile: string;
   // the name of the docker image to create
   imageName: string;
+  // the home directory inside the docker image
+  home: string;
 }
 
 export interface StrategyConfig {

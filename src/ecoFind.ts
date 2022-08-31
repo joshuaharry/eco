@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  Joshua Hoeflich                                   */
 /*    Creation    :  Tue Jul 26 09:15:08 2022                          */
-/*    Last change :  Tue Aug 30 21:03:37 2022 (serrano)                */
+/*    Last change :  Tue Aug 30 22:57:39 2022 (serrano)                */
 /*    Copyright   :  2022 Hoeflich, Findler, Serrano                   */
 /*    -------------------------------------------------------------    */
 /*    find and clone a package git repository.                         */
@@ -12,9 +12,10 @@
 /*---------------------------------------------------------------------*/
 /*    The module                                                       */
 /*---------------------------------------------------------------------*/
-import type { EcoFind, ExecuteRequest, StepResult, DockerConfig } from "./language";
+import type { EcoFind, ExecuteRequest, StepResult } from "./language";
 import { appendFile, runCommand } from "./util";
 import axios from "axios";
+import type { Shell } from "./shell";
 
 export { gitUrl, ecoFind };
 
@@ -23,12 +24,12 @@ export { gitUrl, ecoFind };
 /*---------------------------------------------------------------------*/
 const ecosystemFetchers: Record<
   string,
-  (req: ExecuteRequest, find: EcoFind, docker: DockerConfig | undefined) => Promise<string>
+  (req: ExecuteRequest, find: EcoFind, shell: Shell) => Promise<string>
 > = {
   async git(req) {
     return req.lib;
   },
-  async npm(req, find, docker) {
+  async npm(req, find, shell) {
     const search = `http://registry.npmjs.com/-/v1/search?text=${req.lib}&size=1`;
     const { data } = await axios.get(search, {
       timeout: find.timeout || req.defaultTimeout,
@@ -41,9 +42,10 @@ const ecosystemFetchers: Record<
 	 command: `npm view ${req.lib} repository.url`,
 	 cwd: process.cwd(),
 	 outputFile: "-",
-	 output: ""
+	 output: "",
+	 lib: req.lib
       };
-      if (await runCommand(cmd, docker) === "STEP_SUCCESS") {
+      if (await runCommand(cmd, shell) === "STEP_SUCCESS") {
          repository = cmd.output
                          .trim()
                          .replace(/(remote-)?git[+]https/, "https")
@@ -71,7 +73,7 @@ const ecosystemFetchers: Record<
 /*---------------------------------------------------------------------*/
 /*    gitUrl ...                                                       */
 /*---------------------------------------------------------------------*/
-async function gitUrl(req: ExecuteRequest, find: EcoFind, docker: DockerConfig | undefined): Promise<StepResult | string> {
+async function gitUrl(req: ExecuteRequest, find: EcoFind, shell: Shell): Promise<StepResult | string> {
   const fetcher = ecosystemFetchers[find.ecosystem];
   if (!fetcher) {
     await appendFile(
@@ -81,7 +83,7 @@ async function gitUrl(req: ExecuteRequest, find: EcoFind, docker: DockerConfig |
     return "STEP_FAILURE";
   }
   try {
-    const libPath = fetcher(req, find, docker);
+    const libPath = fetcher(req, find, shell);
     return libPath;
   } catch (err) {
     await appendFile(
@@ -95,8 +97,8 @@ async function gitUrl(req: ExecuteRequest, find: EcoFind, docker: DockerConfig |
 /*---------------------------------------------------------------------*/
 /*    ecoFind ...                                                      */
 /*---------------------------------------------------------------------*/
-async function ecoFind(req: ExecuteRequest, find: EcoFind, docker: DockerConfig | undefined): Promise<StepResult> {
-  const url = await gitUrl(req, find, docker);
+async function ecoFind(req: ExecuteRequest, find: EcoFind, shell: Shell): Promise<StepResult> {
+  const url = await gitUrl(req, find, shell);
   if (url === "STEP_FAILURE") {
     return url;
   }
@@ -108,9 +110,9 @@ async function ecoFind(req: ExecuteRequest, find: EcoFind, docker: DockerConfig 
   const res = await runCommand({
     timeout: find.timeout || req.defaultTimeout,
     command: `git clone ${url} ${req.cwd}`,
-    cwd: process.cwd(),
-    outputFile: req.logFile,
-  }, docker);
+    cwd: shell.cwd(),
+    outputFile: req.logFile
+  }, shell);
   return res;
 };
 

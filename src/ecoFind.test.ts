@@ -1,5 +1,8 @@
 import { gitUrl } from "./ecoFind";
 import { rm } from "fs-extra";
+import { HostShell } from "./shell";
+
+const shell = new HostShell();
 
 afterEach(async () => {
   await rm("ecoFindTest.log", { force: true });
@@ -21,7 +24,7 @@ describe("Getting GIT urls", () => {
         name: "Find the npm package.",
         uses: "@eco/find",
        },
-       undefined
+       shell
     );
     expect(res).toEqual("identity");
   });
@@ -40,7 +43,7 @@ describe("Getting GIT urls", () => {
         name: "Find the npm package.",
         uses: "@eco/find",
       }, 
-      undefined
+      shell
     );
     expect(res).toEqual("https://github.com/facebook/react");
   });
@@ -59,7 +62,7 @@ describe("Getting GIT urls", () => {
         name: "Find the npm package.",
         uses: "@eco/find",
       },
-      undefined
+      shell
     );
     expect(res).toEqual("STEP_FAILURE");
   });

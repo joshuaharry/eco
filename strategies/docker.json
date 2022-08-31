@@ -6,7 +6,8 @@
     "timeout": 300000,
     "docker": {
        "dockerFile": "docker/Dockerfile",
-       "imageName": "eco"
+       "imageName": "eco",
+       "home": "/home/scotty"
     },
     "ecoVersion": "0.0.0",
     "dependencies": {

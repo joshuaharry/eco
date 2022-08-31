@@ -9,11 +9,15 @@
         },
         "imageName": {
           "type": "string"
+        },
+        "home": {
+          "type": "string"
         }
       },
       "required": [
         "dockerFile",
-        "imageName"
+        "imageName",
+        "home"
       ],
       "additionalProperties": false
     },
