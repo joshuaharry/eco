@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Aug 30 23:23:23 2022                          */
-/*    Last change :  Wed Aug 31 17:34:19 2022 (serrano)                */
+/*    Last change :  Wed Aug 31 20:22:26 2022 (serrano)                */
 /*    Copyright   :  2022 manuel serrano                               */
 /*    -------------------------------------------------------------    */
 /*    Shell environments                                               */
@@ -97,6 +97,8 @@ export class HostShell extends Shell {
     const fname = path.join(this.tmp, "cmd");
     const fd = fs.openSync(fname, "w");
     
+    console.log("FNAME=", fname);
+    
     this.log(`spawn [${acmd}]`);
     
     fs.writeSync(fd, "#!/bin/bash\n");
@@ -104,9 +106,9 @@ export class HostShell extends Shell {
     fs.writeSync(fd, `${acmd}\n`);
     fs.closeSync(fd);
 
-    fs.chmodSync("/tmp/cmd", "a+rx")
+    fs.chmodSync(fname, 0o777)
     
-    return spawn("/tmp/cmd");
+    return spawn(fname);
   }
 }
  

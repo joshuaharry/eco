@@ -44,7 +44,7 @@ chmod a+rx $PWD/eco-shell.sh
 
 while expr $i "<" $num; do
   echo "====== eco $cleanup -s strategies/scotty.json -f dt-all.$i -d DT-ALL.$i"
-  eco $cleanup -s ../strategies/scotty.json -f dt-all.$i -d DT-ALL.$i
+  eco $cleanup -s ../strategies/docker.json -f dt-all.$i -d DT-ALL.$i
 
   # cleanup npm cache that grows too big
   npm cache clean --force
