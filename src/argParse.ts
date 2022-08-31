@@ -1,12 +1,14 @@
 import type { StrategyRequest } from "./interpret";
+import os from "os";
 
 export const usageAndExit = (exitCode: number): never => {
   console.log(`Usage: eco [-h][--help]
                        [-s | --stratgegy <path>]
                        [-f | --file-list <path>]
-		       [-n | --no-cleanup]
-		       [-d | --log-dir <path>]
-		       [<path> ...]
+                       [-n | --no-cleanup]
+                       [-j | --cpus <number>]
+                       [-d | --log-dir <path>]
+                       [<path> ...]
 
 eco - A tool for understanding your software's ecosystem.
 
@@ -24,7 +26,12 @@ https://github.com/joshuaharry/eco
 };
 
 export const parseArgv = (argv: string[]): StrategyRequest => {
-  const req: StrategyRequest = { strategyPath: "", filesPath: "", filesList: [], cleanup: true, logDir: new Date().toISOString() };
+  const req: StrategyRequest = {
+     strategyPath: "", filesPath: "",
+     filesList: [],
+     cleanup: true,
+     cpus: os.cpus().length - 1,
+     logDir: new Date().toISOString() };
   const length = argv.length;
   for (let i = 2; i < length; ++i) {
     const arg = argv[i];
@@ -42,6 +49,13 @@ export const parseArgv = (argv: string[]): StrategyRequest => {
       ++i;
     } else if ((arg === "-n" || arg === "--no-cleanup") && next) {
       req.cleanup = false;
+    } else if ((arg === "-j" || arg === "--cpus") && next) {
+      if (!next.match(/^[1-9][0-9]*$/)) {
+	  console.error("eco: expected -j / --cpus to be followed by a number");
+	  return usageAndExit(1);
+      }
+      req.cpus = parseInt(next);
+      ++i;
     } else {
       req.filesList.push(<string>arg);
     }

@@ -41,6 +41,8 @@ export interface StrategyRequest {
   cleanup: boolean;
   // the name of the directory where to store logs
   logDir: string;
+  // number of packages to process in parallel
+  cpus: number;
 }
 
 export interface StrategyToRun {
@@ -50,6 +52,8 @@ export interface StrategyToRun {
   strategy: Strategy;
   // cleanup stage
   cleanup: boolean;
+  // number of packages to process in parallel
+  cpus: number;
 }
 
 const resolveRequest = (req: StrategyRequest): StrategyToRun => {
@@ -67,7 +71,7 @@ const resolveRequest = (req: StrategyRequest): StrategyToRun => {
   const packages = req.filesPath 
      ? readlines(path.normalize(req.filesPath))
      : req.filesList;
-  return { strategy, packages, cleanup: req.cleanup };
+  return { strategy, packages, cpus: req.cpus, cleanup: req.cleanup };
 };
 
 /*---------------------------------------------------------------------*/
@@ -156,7 +160,7 @@ export async function execute(toRun: StrategyToRun, shell: Shell): Promise<void>
   }
   
   const tasks = toRun.packages.map(executeLib);
-  await runInPool(os.cpus().length - 1, tasks);
+  await runInPool(toRun.cpus ,tasks);
 }
 
 /*---------------------------------------------------------------------*/
