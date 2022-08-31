@@ -236,6 +236,7 @@ export class DockerShell extends Shell {
     fs.closeSync(fd);
     
     execSync(`docker cp ${fname} ${this.containerName()}:/tmp/cmd`);
+    execSync(`docker exec --user root ${this.containerName()} chown scotty:scotty /tmp/cmd`);
     execSync(`docker exec ${this.containerName()} chmod a+rx /tmp/cmd`);
     
     return spawn("docker", ["exec", this.containerName(), "/tmp/cmd"]);
