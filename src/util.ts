@@ -144,8 +144,6 @@ export async function runCommand(cmd: Command, shell: Shell): Promise<StepResult
   const buffer: string[] = [];
   commandResult = false;
 
-  log(`$ ${command} (${cwd})`);
-  
   const stream = (outputFile === "-" ? bufferWriteStream(buffer) : createWriteStream(outputFile, { flags: "a" }));
   const ongoingCommand = shell.spawn(command, { shell: true, cwd });
 
