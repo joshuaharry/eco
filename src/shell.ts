@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Aug 30 23:23:23 2022                          */
-/*    Last change :  Wed Aug 31 17:21:04 2022 (serrano)                */
+/*    Last change :  Wed Aug 31 17:34:19 2022 (serrano)                */
 /*    Copyright   :  2022 manuel serrano                               */
 /*    -------------------------------------------------------------    */
 /*    Shell environments                                               */
@@ -25,6 +25,7 @@ import { mkdirp, rm } from "fs-extra";
 /*---------------------------------------------------------------------*/
 export abstract class Shell {
   public home: string = "";
+  public tmp: string = "";
   
   constructor(home: string) {
     this.home = home;
@@ -59,7 +60,13 @@ export class HostShell extends Shell {
   }
     
   async fork(lib: string): Promise<Shell> {
-    return new Promise((res, rej) => res(new HostShell()));
+    const sh = new HostShell();
+    sh.tmp = "/tmp/" + lib;
+    
+    // create the tmp directory
+    mkdirp(sh.tmp);
+    
+    return new Promise((res, rej) => res(sh));
   }
 
   async rm(dir: string, opt: { force: boolean, recursive: boolean }) {
@@ -86,11 +93,20 @@ export class HostShell extends Shell {
   }
   
   spawn(cmd: string, opt: { shell: boolean, cwd: string }): ChildProcessWithoutNullStreams {
-    // THIS CODE IS WRONG it is assuming an exec like syntax for spawn,
-    // which is a wrong assumption
-    // spawn needs to generate a shell script file as DockerShell is doing
-    // see DockerShell.spawn
-    return spawn(cmd, opt);
+    const acmd = cmd.replace(/~/, this.home);
+    const fname = path.join(this.tmp, "cmd");
+    const fd = fs.openSync(fname, "w");
+    
+    this.log(`spawn [${acmd}]`);
+    
+    fs.writeSync(fd, "#!/bin/bash\n");
+    fs.writeSync(fd, `cd ${opt?.cwd || this.cwd()}\n`);
+    fs.writeSync(fd, `${acmd}\n`);
+    fs.closeSync(fd);
+
+    fs.chmodSync("/tmp/cmd", "a+rx")
+    
+    return spawn("/tmp/cmd");
   }
 }
  
@@ -103,7 +119,6 @@ export class DockerShell extends Shell {
   private $cwd: string = "";
   private $terminating: boolean = false;
   private lib: string | null = null;
-  private tmp: string = "";
   
   constructor(home: string, dockerFile: string, imageName: string) {
     super(home);
