@@ -40,7 +40,7 @@ const ecosystemFetchers: Record<
       const cmd = {
          timeout: find.timeout || req.defaultTimeout,
 	 command: `npm view ${req.lib} repository.url`,
-	 cwd: process.cwd(),
+	 cwd: shell.cwd(),
 	 outputFile: "-",
 	 output: "",
 	 lib: req.lib
