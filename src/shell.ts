@@ -144,13 +144,33 @@ export class DockerShell extends Shell {
     const cmd = `docker run --name ${sh.containerName()} ${sh.imageName} -c "tail -f /dev/null"`;
    
     this.log(`forking container "${this.imageName}.${lib}" [${cmd}]`);
+
+    let aborted = false;
+    let startedSuccessfully = false;
     // this command will eventually be abruptly stopped
     run(cmd).catch((e) => { 
-      if (!sh.$terminating) {
+      aborted = e;
+      if (!sh.$terminating && startedSuccessfully) {
         console.error(`fork failed: ${e.toString()}`);
       }});
 
-    return new Promise((res, rej) => setTimeout(() => res(sh), 2000));
+    const checkInterval = 100; // msec
+    const ttl = 10 * 1000; // msec
+    async function loop(res: (n:Shell) => void, rej: (reason? : any) => void, n: number) {
+        if (!aborted && n < ttl) {
+            const { code } = await system(`docker ps -a | tail -n +2 | grep eco.${lib}`,false);
+            if (code === 0) {
+                startedSuccessfully = true;
+                res(sh);
+            } else {
+                setTimeout(() => loop(res, rej, n+checkInterval), checkInterval);
+            }
+        } else {
+            rej(`Error in fork: could not start container ${lib}: ${aborted ? aborted.toString() : "timeout"}`);
+        }
+    }
+
+    return new Promise<Shell>((res, rej) => loop(res, rej, 0));
   }
 
   containerName(): string {
