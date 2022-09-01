@@ -16,6 +16,7 @@ import type { Shell } from "./shell";
 
 import { runInPool } from "./concurrency";
 import path from "path";
+import fs from "fs";
 import os from "os";
 import Ajv, { AnySchema } from "ajv";
 import { validate } from "./dependencies";
@@ -102,10 +103,16 @@ async function executeSteps(req: ExecuteRequest, shell: Shell, cleansh: boolean)
   const { lib, steps, cleanup, logFile, cwd } = req;
   const sh = await shell.fork(lib);
   
+  log(`Executing strategy for ${lib}`);
+
+  // cleanup the sandbox directory and the previous log file, if any
   await sh.rm(cwd, { force: true, recursive: true });
   await sh.mkdirp(cwd);
   
-  log(`Executing strategy for ${lib}`);
+  if (fs.existsSync(logFile)) {
+    fs.unlinkSync(logFile);
+  }
+
   try {
     for (const [i, step] of steps.entries()) {
       await appendFile(

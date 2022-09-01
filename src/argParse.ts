@@ -1,5 +1,8 @@
 import type { StrategyRequest } from "./interpret";
 import os from "os";
+import path from "path";
+
+const DEFAULT_STRATEGY = path.join(os.homedir(), ".eco/strategies/scotty.json");
 
 export const usageAndExit = (exitCode: number): never => {
   console.log(`Usage: eco [-h][--help]
@@ -27,7 +30,7 @@ https://github.com/joshuaharry/eco
 
 export const parseArgv = (argv: string[]): StrategyRequest => {
   const req: StrategyRequest = {
-     strategyPath: "", filesPath: "",
+     strategyPath: DEFAULT_STRATEGY, filesPath: "",
      filesList: [],
      cleanup: true,
      cpus: os.cpus().length - 1,

@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Aug 30 23:23:23 2022                          */
-/*    Last change :  Wed Aug 31 20:22:26 2022 (serrano)                */
+/*    Last change :  Thu Sep  1 11:53:58 2022 (serrano)                */
 /*    Copyright   :  2022 manuel serrano                               */
 /*    -------------------------------------------------------------    */
 /*    Shell environments                                               */
@@ -96,8 +96,6 @@ export class HostShell extends Shell {
     const acmd = cmd.replace(/~/, this.home);
     const fname = path.join(this.tmp, "cmd");
     const fd = fs.openSync(fname, "w");
-    
-    console.log("FNAME=", fname);
     
     this.log(`spawn [${acmd}]`);
     
