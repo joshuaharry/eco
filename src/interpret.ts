@@ -81,6 +81,7 @@ const resolveRequest = (req: StrategyRequest): StrategyToRun => {
 async function executeStep(step: StrategyStep, req: ExecuteRequest, shell: Shell): Promise<StepResult> {
   const { cwd, defaultTimeout, logFile } = req;
   if ("run" in step) {
+    await appendFile(logFile, `${step.run}\n`);
     const res = await runCommand({
       timeout: step.timeout || defaultTimeout,
       command: step.run,

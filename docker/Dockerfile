@@ -19,6 +19,7 @@ RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
     npm \
     node-typescript \
     yarnpkg \
+    python3 \
     && apt-get clean
 
 WORKDIR /home/scotty

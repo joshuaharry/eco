@@ -39,26 +39,26 @@
       },
       {
         "name": "Install the Dependencies",
-        "run": "npm install --legacy-peerdeps"
+        "run": "NODE_OPTIONS=--openssl-legacy-provider npm install --legacy-peerdeps"
       },
       {
         "name": "Run the Unit Tests",
-        "run": "npm test",
+        "run": "NODE_OPTIONS=--openssl-legacy-provider npm test",
         "timeout": 120000
       },
       {
         "name": "Run the Unit Tests in Identity Mode",
-        "run": "scotty identity-mode && npm test",
+        "run": "scotty identity-mode && NODE_OPTIONS=--openssl-legacy-provider npm test",
         "timeout": 180000
       },
       {
         "name": "Run the Unit Tests in Proxy Mode",
-        "run": "scotty proxy-mode && npm test",
+        "run": "scotty proxy-mode && NODE_OPTIONS=--openssl-legacy-provider npm test",
         "timeout": 180000
       },
       {
         "name": "Run the Unit Tests With Full Contract Checking",
-        "run": "scotty full-mode && npm test",
+        "run": "scotty full-mode && NODE_OPTIONS=--openssl-legacy-provider npm test",
         "timeout": 180000
       },
       {
