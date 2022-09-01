@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Aug 30 23:23:23 2022                          */
-/*    Last change :  Thu Sep  1 11:53:58 2022 (serrano)                */
+/*    Last change :  Thu Sep  1 20:07:22 2022 (serrano)                */
 /*    Copyright   :  2022 manuel serrano                               */
 /*    -------------------------------------------------------------    */
 /*    Shell environments                                               */
@@ -158,9 +158,10 @@ export class DockerShell extends Shell {
     const ttl = 10 * 1000; // msec
     async function loop(res: (n:Shell) => void, rej: (reason? : any) => void, n: number) {
         if (!aborted && n < ttl) {
-            const { code } = await system(`docker ps -a | tail -n +2 | grep eco.${lib}`,false);
+            const { code, stdout } = await system(`docker exec ${sh.containerName()} echo "started"`,false);
             if (code === 0) {
                 startedSuccessfully = true;
+		console.log("GOT IT [" + stdout + "]");
                 res(sh);
             } else {
                 setTimeout(() => loop(res, rej, n+checkInterval), checkInterval);
