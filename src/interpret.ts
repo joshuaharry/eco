@@ -11,6 +11,7 @@ import type {
   StepResult,
   ExecuteRequest,
 } from "./language";
+import { cmdLine } from "./argParse";
 import { HostShell, DockerShell } from "./shell";
 import type { Shell } from "./shell";
 
@@ -84,7 +85,12 @@ async function executeStep(step: StrategyStep, req: ExecuteRequest, shell: Shell
     await appendFile(logFile, `${step.run}\n`);
     const res = await runCommand({
       timeout: step.timeout || defaultTimeout,
-      command: step.run,
+      command: step.run
+        .replace(/ %f/, cmdLine.f)
+        .replace(/ %n/, cmdLine.n)
+        .replace(/ %j/, cmdLine.j)
+        .replace(/ %d/, cmdLine.d)
+        .replace(/ %path/, cmdLine.path),
       cwd: cwd,
       outputFile: logFile
     }, shell);
@@ -102,51 +108,65 @@ async function executeStep(step: StrategyStep, req: ExecuteRequest, shell: Shell
 /*---------------------------------------------------------------------*/
 async function executeSteps(req: ExecuteRequest, shell: Shell, cleansh: boolean) {
   const { lib, steps, cleanup, logFile, cwd } = req;
-  const sh = await shell.fork(lib);
   
-  log(`Executing strategy for ${lib}`);
-
-  // cleanup the sandbox directory and the previous log file, if any
-  await sh.rm(cwd, { force: true, recursive: true });
-  await sh.mkdirp(cwd);
-  
-  if (fs.existsSync(logFile)) {
-    fs.unlinkSync(logFile);
-  }
-
   try {
-    for (const [i, step] of steps.entries()) {
-      await appendFile(
-        logFile,
-        `\n### ECO:STEP ${i + 1}/${steps.length}: ${new Date().toISOString()} (${step.name})\n`
-      );
-      const res = await executeStep(step, req, sh);
-      if (res !== "STEP_SUCCESS") {
-        break;
-      }
+    let sh = await shell.fork(lib);
+  
+    log(`Executing strategy for ${lib}`);
+
+    // cleanup the sandbox directory and the previous log file, if any
+    await sh.rm(cwd, { force: true, recursive: true });
+    await sh.mkdirp(cwd);
+    
+    if (fs.existsSync(logFile)) {
+      fs.unlinkSync(logFile);
     }
-  } catch (err:any) {
-    log(`*** ECO-ERROR:step:toplevel error triggered by ${lib}\n${err.toString()}`);
-    await appendFile(logFile, err.toString());
-  } finally {
-    for (const [i, step] of cleanup.entries()) {
-      try {
+  
+    try {
+      for (const [i, step] of steps.entries()) {
         await appendFile(
           logFile,
-          `\n### ECO:CLEANUP ${i + 1}/${cleanup.length}: ${new Date().toISOString()}\n`
+          `\n### ECO:STEP ${i + 1}/${steps.length}: ${new Date().toISOString()} (${step.name})\n`
         );
-        await executeStep(step, req, sh);
-      } catch (err) {
-        log(`*** ECO-ERROR:cleanup:Error cleaning up ${lib}`);
+        const res = await executeStep(step, req, sh);
+        if (res !== "STEP_SUCCESS") {
+          break;
+        }
       }
+    } catch (err:any) {
+      log(`*** ECO-ERROR:step:toplevel error triggered by ${lib}\n${err.toString()}`);
+      await appendFile(logFile, err.toString());
+    } finally {
+      for (const [i, step] of cleanup.entries()) {
+        try {
+          await appendFile(
+            logFile,
+            `\n### ECO:CLEANUP ${i + 1}/${cleanup.length}: ${new Date().toISOString()}\n`
+          );
+          await executeStep(step, req, sh);
+          await appendFile(
+            logFile,
+            `eco:cleanup ${i + 1}/${cleanup.length} completed`
+          );
+        } catch (err) {
+          log(`*** ECO-ERROR:cleanup:Error cleaning up ${lib}`);
+        }
+      }
+      await appendFile(
+        logFile,
+        `eco:cleanup completed`);
     }
+    
+    if (cleansh) {
+      sh.cleanup();
+    } 
+    
+    log(`Finished running strategy for ${lib}`);
+  } catch (err:any) {
+    log(`*** ECO-ERROR:fork:Cannot start the container for package ${lib}: ${err.toString()}`);
+    return;
   }
-  
-  if (cleansh) {
-    sh.cleanup();
-  } 
-  
-  log(`Finished running strategy for ${lib}`);
+
 }
 
 /*---------------------------------------------------------------------*/
@@ -179,7 +199,7 @@ export async function interpret(req: StrategyRequest) {
   const { strategy } = toRun;
   const docker = strategy.config.docker 
   const execshell = docker
-    ? new DockerShell(docker.home, docker.dockerFile, docker.imageName)
+    ? new DockerShell(docker.home, docker.dockerFile, docker.imageName, docker.incremental)
     : new HostShell();
   const logshell = new HostShell();
 

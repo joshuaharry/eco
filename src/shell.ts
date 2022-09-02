@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Aug 30 23:23:23 2022                          */
-/*    Last change :  Thu Sep  1 20:07:22 2022 (serrano)                */
+/*    Last change :  Fri Sep  2 00:05:40 2022 (serrano)                */
 /*    Copyright   :  2022 manuel serrano                               */
 /*    -------------------------------------------------------------    */
 /*    Shell environments                                               */
@@ -114,17 +114,20 @@ export class HostShell extends Shell {
 /*    DockerShell ...                                                  */
 /*---------------------------------------------------------------------*/
 export class DockerShell extends Shell {
+  private $cwd: string = "";
+  private $incremental: boolean;
+  
   private dockerFile: string;
   private imageName: string;
-  private $cwd: string = "";
   private $terminating: boolean = false;
   private lib: string | null = null;
   
-  constructor(home: string, dockerFile: string, imageName: string) {
+  constructor(home: string, dockerFile: string, imageName: string, incremental: boolean) {
     super(home);
     this.dockerFile = dockerFile;
     this.imageName = imageName
     this.$cwd = this.home;
+    this.$incremental = incremental;
   }
 
   log(msg: string): void {
@@ -133,7 +136,12 @@ export class DockerShell extends Shell {
   }
   
   async fork(lib: string): Promise<Shell> {
-    const sh = new DockerShell(this.home, this.dockerFile, this.imageName);
+    const sh = new DockerShell(this.home, this.dockerFile, this.imageName, this.$incremental);
+    let aborted = false;
+    let startedSuccessfully = false;
+    
+    this.log(`forking container "${this.imageName}.${lib}`);
+    
     sh.lib = lib;
     sh.tmp = "/tmp/" + lib;
     
@@ -141,37 +149,36 @@ export class DockerShell extends Shell {
     mkdirp(sh.tmp);
     
     // create the docker container
-    const cmd = `docker run --name ${sh.containerName()} ${sh.imageName} -c "tail -f /dev/null"`;
+    if (this.$incremental) {
+      const cmd = `docker run --name ${sh.containerName()} ${sh.imageName} -c "tail -f /dev/null"`;
    
-    this.log(`forking container "${this.imageName}.${lib}" [${cmd}]`);
+      // this command will eventually be abruptly stopped
+      run(cmd).catch((e) => { 
+        aborted = e;
+        if (!sh.$terminating && startedSuccessfully) {
+          console.error(`fork failed: ${e.toString()}`);
+        }});
 
-    let aborted = false;
-    let startedSuccessfully = false;
-    // this command will eventually be abruptly stopped
-    run(cmd).catch((e) => { 
-      aborted = e;
-      if (!sh.$terminating && startedSuccessfully) {
-        console.error(`fork failed: ${e.toString()}`);
-      }});
-
-    const checkInterval = 100; // msec
-    const ttl = 10 * 1000; // msec
-    async function loop(res: (n:Shell) => void, rej: (reason? : any) => void, n: number) {
+      const checkInterval = 1000; // msec
+      const ttl = 10 * 1000; // msec
+      async function loop(res: (n:Shell) => void, rej: (reason? : any) => void, n: number) {
         if (!aborted && n < ttl) {
-            const { code, stdout } = await system(`docker exec ${sh.containerName()} echo "started"`,false);
+          const { code, stdout, stderr } = await system(`docker exec ${sh.containerName()} echo "started"`,false);
             if (code === 0) {
-                startedSuccessfully = true;
-		console.log("GOT IT [" + stdout + "]");
-                res(sh);
+              startedSuccessfully = true;
+              res(sh);
             } else {
-                setTimeout(() => loop(res, rej, n+checkInterval), checkInterval);
+	      console.log(`fork(${n}) [docker exec ${sh.containerName()} echo "started"}] `, "{" + stdout + "}", "[" + stderr +"]" );
+              setTimeout(() => loop(res, rej, n+checkInterval), checkInterval);
             }
         } else {
-            rej(`Error in fork: could not start container ${lib}: ${aborted ? aborted.toString() : "timeout"}`);
+          rej(`Error in fork: could not start container ${lib}: ${aborted ? aborted.toString() : "timeout"}`);
         }
+      }
+      return new Promise<Shell>((res, rej) => loop(res, rej, 0));
+    } else {
+      return new Promise<Shell>((res, rej) => res(sh));
     }
-
-    return new Promise<Shell>((res, rej) => loop(res, rej, 0));
   }
 
   containerName(): string {
@@ -245,21 +252,25 @@ export class DockerShell extends Shell {
   }
   
   spawn(cmd: string, opt: { shell: boolean, cwd: string }): ChildProcessWithoutNullStreams {
-    const acmd = cmd.replace(/~/, this.home);
-    const fname = path.join(this.tmp, "cmd");
-    const fd = fs.openSync(fname, "w");
-    
-    this.log(`spawn [${acmd}]`);
-    
-    fs.writeSync(fd, "#!/bin/bash\n");
-    fs.writeSync(fd, `cd ${opt?.cwd || this.cwd()}\n`);
-    fs.writeSync(fd, `${acmd}\n`);
-    fs.closeSync(fd);
-    
-    execSync(`docker cp ${fname} ${this.containerName()}:/tmp/cmd`);
-    execSync(`docker exec --user root ${this.containerName()} chown scotty:scotty /tmp/cmd`);
-    execSync(`docker exec ${this.containerName()} chmod a+rx /tmp/cmd`);
-    
-    return spawn("docker", ["exec", this.containerName(), "/tmp/cmd"]);
+    if (this.$incremental) {
+      const acmd = cmd.replace(/~/, this.home);
+      const fname = path.join(this.tmp, "cmd");
+      const fd = fs.openSync(fname, "w");
+      
+      this.log(`spawn [${acmd}]`);
+      
+      fs.writeSync(fd, "#!/bin/bash\n");
+      fs.writeSync(fd, `cd ${opt?.cwd || this.cwd()}\n`);
+      fs.writeSync(fd, `${acmd}\n`);
+      fs.closeSync(fd);
+      
+      execSync(`docker cp ${fname} ${this.containerName()}:/tmp/cmd`);
+      execSync(`docker exec --user root ${this.containerName()} chown scotty:scotty /tmp/cmd`);
+      execSync(`docker exec ${this.containerName()} chmod a+rx /tmp/cmd`);
+      
+      return spawn("docker", ["exec", this.containerName(), "/tmp/cmd"]);
+    } else {
+      return spawn("docker", ["run", "--name", this.containerName(), this.imageName, "-c", `"${cmd}"`]);;
+    }
   }
 }

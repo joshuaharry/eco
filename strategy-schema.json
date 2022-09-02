@@ -12,12 +12,16 @@
         },
         "home": {
           "type": "string"
+        },
+        "incremental": {
+          "type": "boolean"
         }
       },
       "required": [
         "dockerFile",
         "imageName",
-        "home"
+        "home",
+        "incremental"
       ],
       "additionalProperties": false
     },

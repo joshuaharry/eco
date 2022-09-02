@@ -7,6 +7,8 @@ export interface DockerConfig {
   imageName: string;
   // the home directory inside the docker image
   home: string;
+  // incremental mode involves run "docker run" and then "docker exec"
+  incremental: boolean;
 }
 
 export interface StrategyConfig {

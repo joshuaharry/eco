@@ -1,6 +1,6 @@
 {
   "config": {
-    "name": "JavaScript",
+    "name": "javascript",
     "author": "Joshua Hoeflich",
     "license": "MIT",
     "timeout": 180000,
