@@ -11,6 +11,7 @@ import type {
   StepResult,
   ExecuteRequest,
 } from "./language";
+import { mkdirp } from "fs-extra";
 import { cmdLine } from "./argParse";
 import { HostShell, DockerShell } from "./shell";
 import type { Shell } from "./shell";
@@ -24,7 +25,7 @@ import { validate } from "./dependencies";
 import { ecoFind } from "./ecoFind";
 
 const ECO_DIR = path.join("~", ".eco");
-const SANDBOX_DIR = path.join("~", ".eco", "sandbox");
+const SANDBOX_DIR = path.join(ECO_DIR, "sandbox");
 
 const ajv = new Ajv();
 const schema = readJson(
@@ -45,6 +46,8 @@ export interface StrategyRequest {
   logDir: string;
   // number of packages to process in parallel
   cpus: number;
+  // display the log on the console
+  verbose: boolean;
 }
 
 export interface StrategyToRun {
@@ -56,6 +59,10 @@ export interface StrategyToRun {
   cleanup: boolean;
   // number of packages to process in parallel
   cpus: number;
+  // display the log on the console
+  verbose: boolean;
+  // the log directory
+  logDir: string;
 }
 
 const resolveRequest = (req: StrategyRequest): StrategyToRun => {
@@ -73,7 +80,8 @@ const resolveRequest = (req: StrategyRequest): StrategyToRun => {
   const packages = req.filesPath 
      ? readlines(path.normalize(req.filesPath))
      : req.filesList;
-  return { strategy, packages, cpus: req.cpus, cleanup: req.cleanup };
+     
+  return { strategy, packages, cpus: req.cpus, cleanup: req.cleanup, verbose: req.verbose, logDir: req.logDir };
 };
 
 /*---------------------------------------------------------------------*/
@@ -82,17 +90,23 @@ const resolveRequest = (req: StrategyRequest): StrategyToRun => {
 async function executeStep(step: StrategyStep, req: ExecuteRequest, shell: Shell): Promise<StepResult> {
   const { cwd, defaultTimeout, logFile } = req;
   if ("run" in step) {
-    await appendFile(logFile, `${step.run}\n`);
-    const res = await runCommand({
-      timeout: step.timeout || defaultTimeout,
-      command: step.run
+    const cmd = step.run
         .replace(/ %f/, cmdLine.f)
         .replace(/ %n/, cmdLine.n)
         .replace(/ %j/, cmdLine.j)
         .replace(/ %d/, cmdLine.d)
-        .replace(/ %path/, cmdLine.path),
+        .replace(/ %v/, cmdLine.v)
+	.replace(/ %path/, cmdLine.path)
+        .replace(/%lib/, req.lib)
+        .replace(/%sandbox/, SANDBOX_DIR)
+        .replace(/%eco/, ECO_DIR)
+	.replace(/~/, shell.home)
+    await appendFile(logFile, `run "${cmd} [${shell.constructor.name}]"\n`);
+    const res = await runCommand({
+      timeout: step.timeout || defaultTimeout,
+      command: cmd,
       cwd: cwd,
-      outputFile: logFile
+      outputFile: logFile,
     }, shell);
     return res;
   }
@@ -107,21 +121,25 @@ async function executeStep(step: StrategyStep, req: ExecuteRequest, shell: Shell
 /*    executeSteps ...                                                 */
 /*---------------------------------------------------------------------*/
 async function executeSteps(req: ExecuteRequest, shell: Shell, cleansh: boolean) {
-  const { lib, steps, cleanup, logFile, cwd } = req;
+  const { lib, steps, cleanup, logFile } = req;
   
   try {
     let sh = await shell.fork(lib);
   
     log(`Executing strategy for ${lib}`);
 
-    // cleanup the sandbox directory and the previous log file, if any
-    await sh.rm(cwd, { force: true, recursive: true });
-    await sh.mkdirp(cwd);
-    
-    if (fs.existsSync(logFile)) {
-      fs.unlinkSync(logFile);
+    // ensures that the log directory exists
+    if (!fs.existsSync(path.dirname(req.logFile))) {
+       await mkdirp(path.dirname(req.logFile));
+       log(`log directory created ${path.dirname(req.logFile)}`);
+    } else {
+      // if it does remove existing log file
+      if (fs.existsSync(req.logFile)) {
+        log(`log file cleaned up ${req.logFile}`);
+        fs.unlinkSync(req.logFile);
+      }
     }
-  
+
     try {
       for (const [i, step] of steps.entries()) {
         await appendFile(
@@ -157,6 +175,10 @@ async function executeSteps(req: ExecuteRequest, shell: Shell, cleansh: boolean)
         `eco:cleanup completed`);
     }
     
+    if (req.verbose) {
+      process.stdout.write(fs.readFileSync(logFile));
+    }
+    
     if (cleansh) {
       sh.cleanup();
     } 
@@ -175,13 +197,18 @@ async function executeSteps(req: ExecuteRequest, shell: Shell, cleansh: boolean)
 export async function execute(toRun: StrategyToRun, shell: Shell): Promise<void> {
   function executeLib(lib: string) {
     const unstartedWork = (): Promise<void> => {
+      const logFile = 
+         path.join(ECO_DIR, toRun.strategy.config.name, toRun.logDir, lib)
+	    .replace(/~/,os.homedir());
+	    
       return executeSteps({
         lib,
-        cleanup: toRun.cleanup ? toRun.strategy.action.cleanup : [],
+        cleanup: toRun.cleanup ? toRun.strategy.action.cleanup || []: [],
         steps: toRun.strategy.action.steps,
         defaultTimeout: toRun.strategy.config.timeout,
         cwd: path.join(SANDBOX_DIR, lib),
-        logFile: path.join(process.cwd(), lib),
+        logFile,
+	verbose: toRun.verbose
       }, shell, toRun.cleanup);
     };
     return unstartedWork;
@@ -201,21 +228,12 @@ export async function interpret(req: StrategyRequest) {
   const execshell = docker
     ? new DockerShell(docker.home, docker.dockerFile, docker.imageName, docker.incremental)
     : new HostShell();
-  const logshell = new HostShell();
 
   await execshell.init();
-  await logshell.init();
   
-  const logsh = await logshell.fork("log");
-  await validate(strategy.config.dependencies);
+  await validate(strategy.config.dependencies, strategy.config.name);
   
-  const runPath = path.join(ECO_DIR, strategy.config.name, req.logDir);
-  await logsh.mkdirp(runPath);
-  await logsh.chdir(runPath);
-  
-  if (req.cleanup) {
-    await logsh.cleanup();
-  }
+  // const runPath = path.join(ECO_DIR, strategy.config.name, req.logDir);
   
   await execute(toRun, execshell);
 }

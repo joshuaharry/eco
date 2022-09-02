@@ -214,6 +214,9 @@
           "items": {
             "$ref": "#/definitions/StrategyStep"
           }
+        },
+        "verbose": {
+          "type": "boolean"
         }
       },
       "required": [

@@ -34,8 +34,8 @@
   "action": {
     "steps": [
       {
-        "name": "eco inside dockerDownload the Source Code",
-        "run": "eco -s strategies/scotty.json %f %n %j %d %path"
+        "name": "eco inside docker",
+        "run": "eco -v -s %eco/strategies/scotty.json %f %n %j %d %path"
       }
     ]
   }

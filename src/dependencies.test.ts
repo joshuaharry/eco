@@ -12,7 +12,7 @@ describe("Our dependencies", () => {
           },
           { program: "git" },
         ],
-      })
+      	     }, "strategy")
     );
     expect(exitMock).not.toHaveBeenCalled();
   });
@@ -25,7 +25,7 @@ describe("Our dependencies", () => {
           },
           { program: "also-does-not-exist" },
         ],
-      })
+      	     }, "strategy")
     );
     expect(exitMock).toHaveBeenCalledWith(1);
   });

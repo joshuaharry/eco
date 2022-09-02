@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Aug 30 23:23:23 2022                          */
-/*    Last change :  Fri Sep  2 00:05:40 2022 (serrano)                */
+/*    Last change :  Fri Sep  2 14:51:50 2022 (serrano)                */
 /*    Copyright   :  2022 manuel serrano                               */
 /*    -------------------------------------------------------------    */
 /*    Shell environments                                               */
@@ -270,7 +270,8 @@ export class DockerShell extends Shell {
       
       return spawn("docker", ["exec", this.containerName(), "/tmp/cmd"]);
     } else {
-      return spawn("docker", ["run", "--name", this.containerName(), this.imageName, "-c", `"${cmd}"`]);;
+      console.log("ICI");
+      return spawn("docker", ["run", "--name", this.containerName(), this.imageName, "-c", "/bin/bash", cmd]);;
     }
   }
 }

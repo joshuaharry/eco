@@ -4,7 +4,7 @@ import path from "path";
 
 const DEFAULT_STRATEGY = path.join(os.homedir(), ".eco/strategies/scotty.json");
 
-export const cmdLine = { s: "", f: "", n: "", j: "", d: "", path: "" };
+export const cmdLine = { s: "", f: "", n: "", j: "", d: "", path: "", v: "" };
 
 export const usageAndExit = (exitCode: number): never => {
   console.log(`Usage: eco [-h][--help]
@@ -13,6 +13,7 @@ export const usageAndExit = (exitCode: number): never => {
                        [-n | --no-cleanup]
                        [-j | --cpus <number>]
                        [-d | --log-dir <path>]
+                       [-v | --verbose]
                        [<path> ...]
 
 eco - A tool for understanding your software's ecosystem.
@@ -36,7 +37,8 @@ export const parseArgv = (argv: string[]): StrategyRequest => {
      filesList: [],
      cleanup: true,
      cpus: os.cpus().length - 1,
-     logDir: new Date().toISOString() };
+     logDir: new Date().toISOString(),
+     verbose: false };
   const length = argv.length;
   for (let i = 2; i < length; ++i) {
     const arg = argv[i];
@@ -44,7 +46,7 @@ export const parseArgv = (argv: string[]): StrategyRequest => {
     if (arg === "-h" || arg === "--help") {
       return usageAndExit(0);
     } else if ((arg === "-s" || arg === "--strategy") && next) {
-      cmdLine.f = ` -s ${next}`;
+      cmdLine.s = ` -s ${next}`;
       req.strategyPath = next;
       ++i;
     } else if ((arg === "-f" || arg === "--file-list") && next) {
@@ -58,6 +60,9 @@ export const parseArgv = (argv: string[]): StrategyRequest => {
     } else if ((arg === "-n" || arg === "--no-cleanup") && next) {
       cmdLine.n = " -n";
       req.cleanup = false;
+    } else if ((arg === "-v" || arg === "--verbose") && next) {
+      cmdLine.n = " -v";
+      req.verbose = false;
     } else if ((arg === "-j" || arg === "--cpus") && next) {
       cmdLine.d = ` -j ${next}`;
       if (!next.match(/^[1-9][0-9]*$/)) {
@@ -67,7 +72,7 @@ export const parseArgv = (argv: string[]): StrategyRequest => {
       req.cpus = parseInt(next);
       ++i;
     } else {
-      cmdLine.path = `cmdLine.path ${<string>arg}`;
+      cmdLine.path = `${cmdLine.path} ${<string>arg}`;
       req.filesList.push(<string>arg);
     }
   }

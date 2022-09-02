@@ -63,6 +63,7 @@ export interface ExecuteRequest {
   logFile: string;
   steps: Array<StrategyStep>;
   cleanup: Array<StrategyStep>;
+  verbose?: boolean;
 }
 
 export type OperationTimeout = "OPERATION_TIMEOUT";

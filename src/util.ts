@@ -15,7 +15,7 @@ interface SystemResult {
    stdout: string;
    stderr: string;
 };
- 
+
 /*---------------------------------------------------------------------*/
 /*    system ...                                                       */
 /*    -------------------------------------------------------------    */
@@ -55,10 +55,10 @@ const quitFileError = (err: unknown, thePath: string): never => {
   // eslint-disable-next-line
   // @ts-ignore
   if (err.code === "ENOENT") {
-    console.error(`Fatal error: could not find file ${thePath}`);
+    console.error(`ECO Fatal error: could not find file ${thePath}`);
     process.exit(1);
   } else {
-    console.error(`Fatal unexpected error`, err);
+    console.error(`ECO Fatal unexpected error`, err);
     process.exit(1);
   }
 };
@@ -140,7 +140,9 @@ export let commandResult: string | false = false;
 /*    runCommand ...                                                   */
 /*---------------------------------------------------------------------*/
 export async function runCommand(cmd: Command, shell: Shell): Promise<StepResult> {
-  const { outputFile, command, timeout, cwd } = cmd;
+  const { outputFile, timeout } = cmd;
+  const cwd = cmd.cwd.replace(/~/,shell.home);
+  const command = cmd.command.replace(/~/,shell.home);
   const buffer: string[] = [];
   commandResult = false;
 

@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  Joshua Hoeflich                                   */
 /*    Creation    :  Tue Jul 26 09:15:08 2022                          */
-/*    Last change :  Tue Aug 30 22:57:39 2022 (serrano)                */
+/*    Last change :  Fri Sep  2 11:23:26 2022 (serrano)                */
 /*    Copyright   :  2022 Hoeflich, Findler, Serrano                   */
 /*    -------------------------------------------------------------    */
 /*    find and clone a package git repository.                         */
@@ -99,9 +99,15 @@ async function gitUrl(req: ExecuteRequest, find: EcoFind, shell: Shell): Promise
 /*---------------------------------------------------------------------*/
 async function ecoFind(req: ExecuteRequest, find: EcoFind, shell: Shell): Promise<StepResult> {
   const url = await gitUrl(req, find, shell);
+  
   if (url === "STEP_FAILURE") {
     return url;
   }
+  
+  // cleanup the sandbox directory
+  await shell.rm(req.cwd, { force: true, recursive: true });
+  await shell.mkdirp(req.cwd);
+
   await appendFile(
     req.logFile,
     `git clone ${url} ${req.cwd}\n`
@@ -113,6 +119,7 @@ async function ecoFind(req: ExecuteRequest, find: EcoFind, shell: Shell): Promis
     cwd: shell.cwd(),
     outputFile: req.logFile
   }, shell);
+  
   return res;
 };
 

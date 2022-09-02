@@ -64,7 +64,7 @@
     "cleanup": [
       {
         "name": "Delete the package's source code",
-        "run": "rm -rf *"
+        "run": "rm -rf %sandbox/%lib"
       }
     ]
   }

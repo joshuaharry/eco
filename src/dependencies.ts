@@ -49,8 +49,8 @@ STDOUT:
   }
 };
 
-export const validate = async (deps: Dependencies): Promise<void> => {
-  console.log("Checking dependencies...");
+export const validate = async (deps: Dependencies, name: string): Promise<void> => {
+  console.log(`Checking dependencies "${name}"...`);
   await Promise.all(deps.required.map((dep) => validateDependency(dep)));
-  console.log("Dependencies validated, proceeding to execute strategy.");
+  console.log(`Dependencies validated, proceeding to execute strategy "${name}".`);
 };
