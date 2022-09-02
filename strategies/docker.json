@@ -10,7 +10,26 @@
        "home": "/home/scotty",
        "incremental": false
     },
-    "ecoVersion": "0.0.0"
+    "ecoVersion": "0.0.0",
+    "dependencies": {
+      "required": [
+        {
+          "program": "node",
+          "checkOutput": {
+            "argument": "--version",
+            "includes": "1[6-8]"
+          }
+        },
+        { "program": "git" },
+        {
+          "program": "scotty",
+          "checkOutput": {
+            "argument": "validate",
+            "includes": "Validation successful."
+          }
+        }
+      ]
+    }
   },
   "action": {
     "steps": [
