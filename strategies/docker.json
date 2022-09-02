@@ -10,7 +10,7 @@
        "home": "/home/scotty",
        "incremental": false
     },
-    "ecoVersion": "0.0.0",
+    "ecoVersion": "0.0.0"
   },
   "action": {
     "steps": [
