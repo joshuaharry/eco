@@ -4,7 +4,7 @@
 #    index, if provided should be a multple of 100
 all=dt-all
 cleanup=
-eco=../docker/ecodocker
+eco=eco
 
 if [ ! -f dt-all ]; then
   echo "*** ERROR: cannot find dt-all, should run in the list directory."
@@ -45,8 +45,8 @@ echo "/bin/sh \$*" >> $PWD/eco-shell.sh
 chmod a+rx $PWD/eco-shell.sh
 
 while expr $i "<" $num; do
-  echo "===== $eco $cleanup -s strategies/scotty.json -f dt-all.$i -d DT-ALL.$i"
-  $eco $cleanup -s ../strategies/scotty.json -f dt-all.$i -d DT-ALL.$i
+  echo "===== $eco $cleanup -s strategies/docker.json -f dt-all.$i -d DT-ALL.$i"
+  $eco $cleanup -s ../strategies/docker.json -f dt-all.$i -d DT-ALL.$i
 
   # cleanup npm cache that grows too big
   npm cache clean --force
