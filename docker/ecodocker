@@ -69,12 +69,12 @@ run() {
   docker rm -f $image.$lib > /dev/null 2> /dev/null
   
   if [ "$verbose " != "-v " ]; then
-    echo -n "$image.$lib..."
+    echo -n "$lib..."
     
-    docker run --name $image.$lib $image -c "$image $verbose -s /home/scotty/.$image/strategies/$strategy -n -d LOG $lib" > /dev/null
+    docker run --name $image.$lib $image -c "eco $verbose -s /home/scotty/.$image/strategies/$strategy -n -d LOG $lib" > /dev/null
   else
     echo "$image.$lib..."
-    docker run -a STDOUT -a STDERR --name $image.$lib $image -c "$image $verbose -s /home/scotty/.$image/strategies/$strategy -n -d LOG $lib"
+    docker run -a STDOUT -a STDERR --name $image.$lib $image -c "eco $verbose -s /home/scotty/.$image/strategies/$strategy -n -d LOG $lib"
   fi
   
   docker cp eco.$lib:/home/scotty/.eco/$strategydir/LOG/$lib $logpath
@@ -88,4 +88,4 @@ run() {
 # run the container
 for lib in $libs; do
   run $lib
-done  
+done

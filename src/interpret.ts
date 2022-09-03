@@ -91,21 +91,23 @@ async function executeStep(step: StrategyStep, req: ExecuteRequest, shell: Shell
   const { cwd, defaultTimeout, logFile } = req;
   if ("run" in step) {
     const cmd = step.run
-        .replace(/ %f/, cmdLine.f)
-        .replace(/ %n/, cmdLine.n)
-        .replace(/ %j/, cmdLine.j)
-        .replace(/ %d/, cmdLine.d)
-        .replace(/ %v/, cmdLine.v)
-	.replace(/ %path/, cmdLine.path)
-        .replace(/%lib/, req.lib)
-        .replace(/%sandbox/, SANDBOX_DIR)
-        .replace(/%eco/, ECO_DIR)
-	.replace(/~/, shell.home)
+        .replace(/ [$]f/g, cmdLine.f)
+        .replace(/ [$]n/g, cmdLine.n)
+        .replace(/ [$]j/g, cmdLine.j)
+        .replace(/ [$]d/g, cmdLine.d)
+        .replace(/ [$]v/g, cmdLine.v)
+	.replace(/ [$]path/g, cmdLine.path)
+        .replace(/[$]lib/g, req.lib)
+        .replace(/[$]sandbox/g, SANDBOX_DIR)
+        .replace(/[$]eco/g, ECO_DIR)
+        .replace(/[$]strategy/g, req.strategyName)
+        .replace(/[$]logfile/g, req.logFile)
+	.replace(/~/g, shell.home)
     await appendFile(logFile, `run "${cmd} [${shell.constructor.name}]"\n`);
     const res = await runCommand({
       timeout: step.timeout || defaultTimeout,
       command: cmd,
-      cwd: cwd,
+      cwd: (("cwd" in step) && !step.cwd) ? shell.cwd() : cwd,
       outputFile: logFile,
     }, shell);
     return res;
@@ -199,7 +201,7 @@ export async function execute(toRun: StrategyToRun, shell: Shell): Promise<void>
     const unstartedWork = (): Promise<void> => {
       const logFile = 
          path.join(ECO_DIR, toRun.strategy.config.name, toRun.logDir, lib)
-	    .replace(/~/,os.homedir());
+	    .replace(/~/g,os.homedir());
 	    
       return executeSteps({
         lib,
@@ -208,7 +210,8 @@ export async function execute(toRun: StrategyToRun, shell: Shell): Promise<void>
         defaultTimeout: toRun.strategy.config.timeout,
         cwd: path.join(SANDBOX_DIR, lib),
         logFile,
-	verbose: toRun.verbose
+	verbose: toRun.verbose,
+	strategyName: toRun.strategy.config.name
       }, shell, toRun.cleanup);
     };
     return unstartedWork;

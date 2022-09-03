@@ -3,13 +3,7 @@
     "name": "docker",
     "author": "Joshua Hoeflich",
     "license": "MIT",
-    "timeout": 300000,
-    "docker": {
-       "dockerFile": "docker/Dockerfile",
-       "imageName": "eco",
-       "home": "/home/scotty",
-       "incremental": false
-    },
+    "timeout": 3000000,
     "ecoVersion": "0.0.0",
     "dependencies": {
       "required": [
@@ -34,8 +28,32 @@
   "action": {
     "steps": [
       {
-        "name": "eco inside docker",
-        "run": "eco -v -s %eco/strategies/scotty.json %f %n %j %d %path"
+        "name": "Build the docker image",
+	"run": "if [ \"`docker image inspect --format=- eco`\" != \"-\" ]; then(cd $ecodir; docker build . -t eco) fi",
+ 	"cwd": false
+      },
+      {
+        "name": "Remove the possibly existing container",
+        "run": "docker run --name eco.$lib eco -c 'eco -s /home/scotty/eco/strategies/scotty.json -n -d LOG $lib' > /dev/null",
+ 	"cwd": false,
+        "timeout": 180000
+      },
+      {
+        "name": "Copy the log file",
+        "run": "docker cp eco.$lib:/home/scotty/.eco/scotty/LOG/$lib $logfile.docker",
+ 	"cwd": false
+      },
+      {
+        "name": "Test complete",
+        "run": "true",
+ 	"cwd": false
+      }
+    ],
+    "cleanup": [
+      {
+        "name": "Delete the docker container",
+        "run": "docker rm -f eco.$lib > /dev/null 2> /dev/null",
+ 	"cwd": false
       }
     ]
   }

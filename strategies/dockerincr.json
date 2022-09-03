@@ -1,0 +1,77 @@
+{
+  "config": {
+    "name": "docker",
+    "author": "Joshua Hoeflich",
+    "license": "MIT",
+    "timeout": 300000,
+    "docker": {
+       "dockerFile": "docker/Dockerfile",
+       "imageName": "eco",
+       "home": "/home/scotty",
+       "incremental": true
+    },
+    "ecoVersion": "0.0.0",
+    "dependencies": {
+      "required": [
+        {
+          "program": "node",
+          "checkOutput": {
+            "argument": "--version",
+            "includes": "1[6-8]"
+          }
+        },
+        { "program": "git" },
+        {
+          "program": "scotty",
+          "checkOutput": {
+            "argument": "validate",
+            "includes": "Validation successful."
+          }
+        }
+      ]
+    }
+  },
+  "action": {
+    "steps": [
+      {
+        "name": "Download the Source Code",
+        "uses": "@eco/find",
+        "ecosystem": "npm"
+      },
+      {
+        "name": "Install the Dependencies",
+        "run": "NODE_OPTIONS=--openssl-legacy-provider npm install --legacy-peerdeps"
+      },
+      {
+        "name": "Run the Unit Tests",
+        "run": "NODE_OPTIONS=--openssl-legacy-provider npm test",
+        "timeout": 120000
+      },
+      {
+        "name": "Run the Unit Tests in Identity Mode",
+        "run": "scotty identity-mode && NODE_OPTIONS=--openssl-legacy-provider npm test",
+        "timeout": 180000
+      },
+      {
+        "name": "Run the Unit Tests in Proxy Mode",
+        "run": "scotty proxy-mode && NODE_OPTIONS=--openssl-legacy-provider npm test",
+        "timeout": 180000
+      },
+      {
+        "name": "Run the Unit Tests With Full Contract Checking",
+        "run": "scotty full-mode && NODE_OPTIONS=--openssl-legacy-provider npm test",
+        "timeout": 180000
+      },
+      {
+        "name": "Test complete",
+        "run": "true"
+      }
+    ],
+    "cleanup": [
+      {
+        "name": "Delete the package's source code",
+        "run": "rm -rf %sandbox/%lib"
+      }
+    ]
+  }
+}

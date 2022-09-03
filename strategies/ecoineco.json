@@ -1,0 +1,36 @@
+{
+  "config": {
+    "name": "ecoineco",
+    "author": "Joshua Hoeflich",
+    "license": "MIT",
+    "timeout": 300000,
+    "ecoVersion": "0.0.0",
+    "dependencies": {
+      "required": [
+        {
+          "program": "node",
+          "checkOutput": {
+            "argument": "--version",
+            "includes": "1[6-8]"
+          }
+        },
+        { "program": "git" },
+        {
+          "program": "scotty",
+          "checkOutput": {
+            "argument": "validate",
+            "includes": "Validation successful."
+          }
+        }
+      ]
+    }
+  },
+  "action": {
+    "steps": [
+      {
+        "name": "eco inside eco",
+        "run": "eco -v -s %eco/strategies/scotty.json %f %n %j %d %path"
+      }
+    ]
+  }
+}

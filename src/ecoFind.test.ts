@@ -17,6 +17,7 @@ describe("Getting GIT urls", () => {
         defaultTimeout: 5000,
         lib: "identity",
         logFile: "ecoFindTest.log",
+        strategyName: "strategy",
         steps: [],
       },
       {
@@ -36,6 +37,7 @@ describe("Getting GIT urls", () => {
         defaultTimeout: 5000,
         lib: "react",
         logFile: "ecoFindTest.log",
+        strategyName: "strategy",
         steps: [],
       },
       {
@@ -55,6 +57,7 @@ describe("Getting GIT urls", () => {
         defaultTimeout: 5000,
         lib: "react",
         logFile: "ecoFindTest.log",
+        strategyName: "strategy",
         steps: [],
       },
       {

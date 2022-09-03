@@ -137,6 +137,9 @@
             },
             "timeout": {
               "type": "number"
+            },
+            "cwd": {
+              "type": "boolean"
             }
           },
           "required": [
@@ -203,6 +206,9 @@
         "logFile": {
           "type": "string"
         },
+        "strategyName": {
+          "type": "string"
+        },
         "steps": {
           "type": "array",
           "items": {
@@ -224,6 +230,7 @@
         "lib",
         "cwd",
         "logFile",
+        "strategyName",
         "steps",
         "cleanup"
       ],

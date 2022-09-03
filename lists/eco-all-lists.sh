@@ -27,7 +27,7 @@ num=`wc -l $all | awk '{print $1}'`
 
 # install the new npm script-shell in order to intercept linters
 restorenpm() {
-  if [ "$script-shell " != " " ]; then
+  if [ "$script-shell " != "undefined " ]; then
     npm set script-shell $scriptshell
   else
     npm config delete script-shell
@@ -35,6 +35,7 @@ restorenpm() {
 }
 
 trap restorenpm EXIT
+
 scriptshell=`npm get script-shell.sh`
 npm set script-shell "$PWD/eco-shell.sh"
 echo "#!/bin/sh" > $PWD/eco-shell.sh

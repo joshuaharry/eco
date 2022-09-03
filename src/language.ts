@@ -43,6 +43,7 @@ export type StrategyStep =
       name: string;
       run: string;
       timeout?: number;
+      cwd?: boolean;
     }
   | EcoFind;
 
@@ -61,6 +62,7 @@ export interface ExecuteRequest {
   lib: string;
   cwd: string;
   logFile: string;
+  strategyName: string;
   steps: Array<StrategyStep>;
   cleanup: Array<StrategyStep>;
   verbose?: boolean;
