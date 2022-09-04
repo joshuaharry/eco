@@ -86,7 +86,6 @@ const resolveRequest = (req: StrategyRequest): StrategyToRun => {
      ? eval(strategy.config.cpus.replace(/[$]cpus/, os.cpus().length + "")) 
      : req.cpus;
      
-     if(strategy.config.cpus) process.exit(0);
   return { strategy, packages, cpus: cpus, cleanup: req.cleanup, verbose: req.verbose, logDir: req.logDir };
 };
 
