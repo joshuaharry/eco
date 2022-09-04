@@ -25,6 +25,7 @@ import { validate } from "./dependencies";
 import { ecoFind } from "./ecoFind";
 
 const ECO_DIR = path.join("~", ".eco");
+const BUILD_DIR = path.dirname(require.resolve("../package.json"));
 const SANDBOX_DIR = path.join(ECO_DIR, "sandbox");
 
 const ajv = new Ajv();
@@ -100,6 +101,7 @@ async function executeStep(step: StrategyStep, req: ExecuteRequest, shell: Shell
         .replace(/[$]lib/g, req.lib)
         .replace(/[$]sandbox/g, SANDBOX_DIR)
         .replace(/[$]eco/g, ECO_DIR)
+        .replace(/[$]builddir/g, BUILD_DIR)
         .replace(/[$]strategy/g, req.strategyName)
         .replace(/[$]logfile/g, req.logFile)
 	.replace(/~/g, shell.home)
