@@ -56,6 +56,11 @@
  	"cwd": false
       },
       {
+        "name": "Kill the docker container process",
+        "run": "docker kill --signal=9 eco.$lib",
+ 	"cwd": false
+      },
+      {
         "name": "Delete the docker container",
         "run": "docker rm -f eco.$lib",
  	"cwd": false

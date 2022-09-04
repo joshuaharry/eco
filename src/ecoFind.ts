@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  Joshua Hoeflich                                   */
 /*    Creation    :  Tue Jul 26 09:15:08 2022                          */
-/*    Last change :  Sun Sep  4 13:51:21 2022 (serrano)                */
+/*    Last change :  Sun Sep  4 16:27:06 2022 (serrano)                */
 /*    Copyright   :  2022 Hoeflich, Findler, Serrano                   */
 /*    -------------------------------------------------------------    */
 /*    find and clone a package git repository.                         */
@@ -111,12 +111,12 @@ async function ecoFind(req: ExecuteRequest, find: EcoFind, shell: Shell): Promis
 
   await appendFile(
     req.logFile,
-    `git clone ${url} --depth=1 ${req.cwd}\n`
+    `git clone --depth=1 ${url} ${req.cwd}\n`
   );
 
   const res = await runCommand({
     timeout: find.timeout || req.defaultTimeout,
-    command: `git clone ${url} --depth=1 ${req.cwd}`,
+    command: `git clone --depth=1 ${url} ${req.cwd}`,
     cwd: shell.cwd(),
     outputFile: req.logFile
   }, shell);

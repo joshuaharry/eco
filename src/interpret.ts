@@ -192,7 +192,6 @@ async function executeSteps(req: ExecuteRequest, shell: Shell, cleansh: boolean)
     log(`*** ECO-ERROR:fork:Cannot start the container for package ${lib}: ${err.toString()}`);
     return;
   }
-
 }
 
 /*---------------------------------------------------------------------*/
