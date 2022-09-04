@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  Joshua Hoeflich                                   */
 /*    Creation    :  Tue Jul 26 09:15:08 2022                          */
-/*    Last change :  Fri Sep  2 11:23:26 2022 (serrano)                */
+/*    Last change :  Sun Sep  4 13:51:21 2022 (serrano)                */
 /*    Copyright   :  2022 Hoeflich, Findler, Serrano                   */
 /*    -------------------------------------------------------------    */
 /*    find and clone a package git repository.                         */
@@ -13,9 +13,10 @@
 /*    The module                                                       */
 /*---------------------------------------------------------------------*/
 import type { EcoFind, ExecuteRequest, StepResult } from "./language";
-import { appendFile, runCommand } from "./util";
+import { runCommand } from "./util";
 import axios from "axios";
 import type { Shell } from "./shell";
+import { appendFile } from "fs/promises";
 
 export { gitUrl, ecoFind };
 
@@ -110,12 +111,12 @@ async function ecoFind(req: ExecuteRequest, find: EcoFind, shell: Shell): Promis
 
   await appendFile(
     req.logFile,
-    `git clone ${url} ${req.cwd}\n`
+    `git clone ${url} --depth=1 ${req.cwd}\n`
   );
 
   const res = await runCommand({
     timeout: find.timeout || req.defaultTimeout,
-    command: `git clone ${url} ${req.cwd}`,
+    command: `git clone ${url} --depth=1 ${req.cwd}`,
     cwd: shell.cwd(),
     outputFile: req.logFile
   }, shell);

@@ -3,7 +3,6 @@ import {
   readlines,
   runCommand,
   log,
-  appendFile,
 } from "./util";
 import type {
   Strategy,
@@ -11,6 +10,7 @@ import type {
   StepResult,
   ExecuteRequest,
 } from "./language";
+import { appendFile } from "fs/promises";
 import { mkdirp } from "fs-extra";
 import { cmdLine } from "./argParse";
 import { HostShell, DockerShell } from "./shell";

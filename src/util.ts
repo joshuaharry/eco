@@ -1,7 +1,6 @@
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
 export { mkdirp, rm } from "fs-extra";
-export { appendFile } from "fs/promises";
 import { readFileSync, createWriteStream } from "fs-extra";
 import { setTimeout } from "timers/promises";
 import treeKill from "tree-kill";
@@ -9,6 +8,7 @@ import type { OperationTimeout, StepResult } from "./language";
 import { Writable } from "stream";
 import { basename } from "path";
 import type { Shell } from "./shell";
+import { appendFile } from "fs/promises";
 
 interface SystemResult {
    code: number;
@@ -116,6 +116,7 @@ const runTimeout = async <T>(
     | T
     | OperationTimeout;
   if (res === "OPERATION_TIMEOUT") {
+    await appendFile(cmd.outputFile, `\n### ECO:TIMEOUT ${cmd.command} ${cmd.cwd}\n`);
     log(`### ECO:TIMEOUT ${cmd.command} ${cmd.cwd}`);
     cancel();
   } else {

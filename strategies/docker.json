@@ -3,7 +3,7 @@
     "name": "docker",
     "author": "Joshua Hoeflich",
     "license": "MIT",
-    "timeout": 3000000,
+    "timeout": 1800000,
     "ecoVersion": "0.0.0",
     "dependencies": {
       "required": [
@@ -33,13 +33,13 @@
  	"cwd": false
       },
       {
-        "name": "Remove the possibly existing container",
-        "run": "docker run --name eco.$lib eco -c 'eco -s /home/scotty/eco/strategies/scotty.json -n -d LOG $lib' > /dev/null",
+        "name": "Run eco inside a newly created container",
+        "run": "docker run --name eco.$lib eco -c 'eco -s /home/scotty/eco/strategies/scotty.json -n -d LOG $lib'",
  	"cwd": false,
-        "timeout": 180000
+        "timeout": 300000
       },
       {
-        "name": "Copy the log file",
+        "name": "Copy the log file (needed if -n option used)",
         "run": "docker cp eco.$lib:/home/scotty/.eco/scotty/LOG/$lib $logfile.docker",
  	"cwd": false
       },
@@ -51,8 +51,13 @@
     ],
     "cleanup": [
       {
+        "name": "Copy the log file (needed if a timeout occurs)",
+        "run": "docker cp eco.$lib:/home/scotty/.eco/scotty/LOG/$lib $logfile.docker",
+ 	"cwd": false
+      },
+      {
         "name": "Delete the docker container",
-        "run": "docker rm -f eco.$lib > /dev/null 2> /dev/null",
+        "run": "docker rm -f eco.$lib",
  	"cwd": false
       }
     ]
