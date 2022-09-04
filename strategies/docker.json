@@ -29,7 +29,7 @@
     "steps": [
       {
         "name": "Build the docker image",
-	"run": "if [ \"`docker image inspect --format=- eco`\" != \"-\" ]; then(cd $ecodir; docker build . -t eco) fi",
+	"run": "if [ \"`docker image inspect --format=- eco`\" != \"-\" ]; then (cd $ecodir; docker build . -t eco) fi",
  	"cwd": false
       },
       {
