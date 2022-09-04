@@ -26,6 +26,8 @@ export interface StrategyConfig {
   dependencies: Dependencies;
   // an optional Docker configuration
   docker?: DockerConfig;
+  // an optional cpus configuration
+  cpus?: string;
 }
 
 export type EcoFind = {

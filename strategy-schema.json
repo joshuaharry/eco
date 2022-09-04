@@ -48,6 +48,9 @@
         },
         "docker": {
           "$ref": "#/definitions/DockerConfig"
+        },
+        "cpus": {
+          "type": "string"
         }
       },
       "required": [

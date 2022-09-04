@@ -5,6 +5,7 @@
     "license": "MIT",
     "timeout": 1800000,
     "ecoVersion": "0.0.0",
+    "cpus": "$cpus/2",
     "dependencies": {
       "required": [
         {

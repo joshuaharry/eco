@@ -82,7 +82,12 @@ const resolveRequest = (req: StrategyRequest): StrategyToRun => {
      ? readlines(path.normalize(req.filesPath))
      : req.filesList;
      
-  return { strategy, packages, cpus: req.cpus, cleanup: req.cleanup, verbose: req.verbose, logDir: req.logDir };
+  const cpus = strategy.config.cpus
+     ? eval(strategy.config.cpus.replace(/[$]cpus/, os.cpus().length + "")) 
+     : req.cpus;
+     
+     if(strategy.config.cpus) process.exit(0);
+  return { strategy, packages, cpus: cpus, cleanup: req.cleanup, verbose: req.verbose, logDir: req.logDir };
 };
 
 /*---------------------------------------------------------------------*/
