@@ -5,11 +5,29 @@
 all=dt-all
 cleanup=
 eco=eco
+strategy=scotty.json
 
 if [ ! -f dt-all ]; then
   echo "*** ERROR: cannot find dt-all, should run in the list directory."
   exit 1;
 fi
+
+if [ "$1 " = "-s " ]; then
+  shift
+  strategy=$1
+  shift
+fi  
+
+if [ "$1 " = "-n " ]; then
+  cleanup=-n
+  shift
+fi  
+
+if [ "$1 " = "-s " ]; then
+  shift
+  strategy=$1
+  shift
+fi  
 
 if [ "$1 " = "-n " ]; then
   cleanup=-n
@@ -45,8 +63,8 @@ echo "/bin/sh \$*" >> $PWD/eco-shell.sh
 chmod a+rx $PWD/eco-shell.sh
 
 while expr $i "<" $num; do
-  echo "===== $eco $cleanup -s strategies/docker.json -f dt-all.$i -d DT-ALL.$i"
-  $eco $cleanup -s ../strategies/docker.json -f dt-all.$i -d DT-ALL.$i
+  echo "===== $eco $cleanup -s strategies/$strategy -f dt-all.$i -d DT-ALL.$i"
+  $eco $cleanup -s ../strategies/$strategy -f dt-all.$i -d DT-ALL.$i
 
   # cleanup npm cache that grows too big
   npm cache clean --force
