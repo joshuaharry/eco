@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Aug 30 23:23:23 2022                          */
-/*    Last change :  Fri Sep  2 14:51:50 2022 (serrano)                */
+/*    Last change :  Mon Sep  5 17:39:58 2022 (serrano)                */
 /*    Copyright   :  2022 manuel serrano                               */
 /*    -------------------------------------------------------------    */
 /*    Shell environments                                               */
@@ -53,6 +53,9 @@ export class HostShell extends Shell {
   }
   
   cleanup() {
+    if (fs.existsSync(this.tmp)) {
+      fs.rmdirSync(this.tmp, { recursive: true });
+    }
   }
 
   log(msg: string): void {
@@ -95,17 +98,23 @@ export class HostShell extends Shell {
   spawn(cmd: string, opt: { shell: boolean, cwd: string }): ChildProcessWithoutNullStreams {
     const acmd = cmd.replace(/~/, this.home);
     const fname = path.join(this.tmp, "cmd");
-    const fd = fs.openSync(fname, "w");
+    
+    try {
+      const fd = fs.openSync(fname, "w");
+        
+      this.log(`generating ${fname}`);
+      
+      fs.writeSync(fd, "#!/bin/bash\n");
+      fs.writeSync(fd, `cd ${opt?.cwd || this.cwd()}\n`);
+      fs.writeSync(fd, `${acmd}\n`);
+      fs.closeSync(fd);
+  
+      fs.chmodSync(fname, 0o777)
+    } catch(e) {
+      this.log(`***ECO:ERROR:could not create the cmd file "${fname}"`);
+    }
     
     this.log(`spawn [${acmd}]`);
-    
-    fs.writeSync(fd, "#!/bin/bash\n");
-    fs.writeSync(fd, `cd ${opt?.cwd || this.cwd()}\n`);
-    fs.writeSync(fd, `${acmd}\n`);
-    fs.closeSync(fd);
-
-    fs.chmodSync(fname, 0o777)
-    
     return spawn(fname);
   }
 }

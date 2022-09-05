@@ -3,7 +3,6 @@
     "name": "docker",
     "author": "Joshua Hoeflich",
     "license": "MIT",
-    "timeout": 1800000,
     "ecoVersion": "0.0.0",
     "cpus": "$cpus/2",
     "dependencies": {
@@ -31,7 +30,8 @@
       {
         "name": "Build the docker image",
 	"run": "if [ \"`docker image inspect --format=- eco`\" != \"-\" ]; then (cd $builddir/docker; docker build . -t eco) fi",
- 	"cwd": false
+ 	"cwd": false,
+        "timeout": 3000000
       },
       {
         "name": "Run eco inside a newly created container",
