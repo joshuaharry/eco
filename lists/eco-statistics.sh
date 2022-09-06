@@ -4,7 +4,7 @@
 #*    -------------------------------------------------------------    */
 #*    Author      :  Manuel Serrano                                    */
 #*    Creation    :  Thu Jul 28 08:45:39 2022                          */
-#*    Last change :  Mon Sep  5 13:35:52 2022 (serrano)                */
+#*    Last change :  Mon Sep  5 21:32:34 2022 (serrano)                */
 #*    Copyright   :  2022 Manuel Serrano                               */
 #*    -------------------------------------------------------------    */
 #*    Generate ECO statistics.                                         */
@@ -69,7 +69,7 @@ echo "  \"step7\": $step7",
 # failing imports
 if [ "$SANDBOXDIR " != " " ]; then
   failingimports=`(cd $SANDBOXDIR; find . -name '*.d.ts' -print | xargs grep import | awk -F/ '{print $2}' | sort | uniq | wc -l)`
-  testsnotests=`(cd $SANDBOXDIR; find . -name 'package.json' -print | xargs grep "Error: no test specified" 2> /dev/null | sort | uniq | wc -l)`
+  testsnotests=`(cd $SANDBOXDIR; find . -maxdepth 2 -name 'package.json' | xargs grep "Error: no test specified" 2> /dev/null | sort | uniq | wc -l)`
 else
   # values collected after executing eco-all-list.sh on 30jul2022
   failingimports=1790

@@ -45,7 +45,7 @@ num=`wc -l $all | awk '{print $1}'`
 
 # install the new npm script-shell in order to intercept linters
 restorenpm() {
-  if [ "$script-shell " != "undefined " ]; then
+  if [ "$scriptshell " != "undefined " ]; then
     npm set script-shell $scriptshell
   else
     npm config delete script-shell
