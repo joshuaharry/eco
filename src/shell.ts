@@ -3,7 +3,7 @@
 /*    -------------------------------------------------------------    */
 /*    Author      :  manuel serrano                                    */
 /*    Creation    :  Tue Aug 30 23:23:23 2022                          */
-/*    Last change :  Mon Sep  5 17:39:58 2022 (serrano)                */
+/*    Last change :  Tue Sep  6 12:56:22 2022 (serrano)                */
 /*    Copyright   :  2022 manuel serrano                               */
 /*    -------------------------------------------------------------    */
 /*    Shell environments                                               */
@@ -54,7 +54,7 @@ export class HostShell extends Shell {
   
   cleanup() {
     if (fs.existsSync(this.tmp)) {
-      fs.rmdirSync(this.tmp, { recursive: true });
+      fs.rmSync(this.tmp, { recursive: true });
     }
   }
 
