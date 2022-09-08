@@ -68,6 +68,7 @@ while expr $i "<" $num; do
 
   # cleanup npm cache that grows too big
   npm cache clean --force
+  rm -rf $HOME/.dts
 
   # if no cleanup asked for each package individually, remove package
   # dependencies to limit disk space
